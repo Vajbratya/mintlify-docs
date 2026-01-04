@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "venus",
+  "theme": "palm",
   "name": "Laudos.AI",
   "colors": {
     "primary": "#6366F1",
