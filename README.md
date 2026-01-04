@@ -1,43 +1,34 @@
-# Mintlify Starter Kit
+# Laudos.AI - Manual do Usuário
 
-Use the starter kit to get your docs deployed and ready to customize.
+Documentação oficial do Laudos.AI para radiologistas.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+## Acesso
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+**Produção:** [manual.laudos.ai](https://manual.laudos.ai)
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
-
-## Development
-
-Install the [Mintlify CLI](https://www.npmjs.com/package/mint) to preview your documentation changes locally. To install, use the following command:
+## Estrutura
 
 ```
-npm i -g mint
+├── index.mdx                    # Introdução
+├── quickstart.mdx               # Início Rápido
+├── autenticacao.mdx             # Login e Autenticação
+├── laudos/
+│   ├── editor.mdx               # Editor de Laudos
+│   ├── ditado-voz.mdx           # Ditado por Voz
+│   └── atalhos.mdx              # Atalhos de Teclado
+├── biblioteca/
+│   ├── laudos.mdx               # Biblioteca de Laudos
+│   └── modelos.mdx              # Modelos/Templates
+├── monitoramento/
+│   ├── achados-criticos.mdx     # Achados Críticos
+│   └── dashboard.mdx            # Painel de Controle
+└── configuracoes/
+    ├── frases-prontas.mdx       # Frases Prontas
+    ├── preferencias.mdx         # Preferências
+    └── planos.mdx               # Planos e Preços
 ```
 
-Run the following command at the root of your documentation, where your `docs.json` is located:
+## Contato
 
-```
-mint dev
-```
-
-View your local preview at `http://localhost:3000`.
-
-## Publishing changes
-
-Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app) to propagate changes from your repo to your deployment. Changes are deployed to production automatically after pushing to the default branch.
-
-## Need help?
-
-### Troubleshooting
-
-- If your dev environment isn't running: Run `mint update` to ensure you have the most recent version of the CLI.
-- If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
-
-### Resources
-- [Mintlify documentation](https://mintlify.com/docs)
+- **Email:** oi@laudos.ai
+- **Plataforma:** [copilot.laudos.ai](https://copilot.laudos.ai)
