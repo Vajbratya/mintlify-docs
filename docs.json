@@ -1,68 +1,43 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Laudos.AI",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4F46E5"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Manual",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Inicio",
+            "pages": ["index", "quickstart", "autenticacao"]
+          },
+          {
+            "group": "Editor",
+            "pages": ["laudos/editor", "laudos/ditado-voz", "laudos/atalhos"]
+          },
+          {
+            "group": "Biblioteca",
+            "pages": ["biblioteca/laudos", "biblioteca/modelos"]
+          },
+          {
+            "group": "Monitoramento",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "monitoramento/achados-criticos",
+              "monitoramento/dashboard"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Configuracoes",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "configuracoes/frases-prontas",
+              "configuracoes/preferencias",
+              "configuracoes/planos"
             ]
           }
         ]
@@ -71,14 +46,14 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Acessar Plataforma",
+          "href": "https://copilot.laudos.ai",
+          "icon": "arrow-up-right-from-square"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Suporte",
+          "href": "mailto:suporte@laudos.ai",
+          "icon": "headset"
         }
       ]
     }
@@ -90,33 +65,19 @@
   "navbar": {
     "links": [
       {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "label": "Suporte",
+        "href": "mailto:suporte@laudos.ai"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Acessar",
+      "href": "https://copilot.laudos.ai"
     }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "linkedin": "https://linkedin.com/company/laudosai"
     }
   }
 }

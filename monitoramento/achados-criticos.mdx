@@ -1,0 +1,69 @@
+---
+title: 'Achados Criticos'
+description: 'Monitore e comunique achados criticos conforme diretrizes do CBR'
+---
+
+# Achados Criticos
+
+O modulo de Achados Criticos permite monitorar, registrar e comunicar descobertas urgentes em exames de imagem.
+
+## Visao Geral
+
+Acesse via **Monitoramento > Achados Criticos** ou `/dashboard/critical-findings`
+
+### Metricas do Cabecalho
+
+- **Total de achados**: Numero total registrado
+- **Urgentes nesta pagina**: Quantidade de achados urgentes visiveis
+- **Pendentes nesta pagina**: Achados aguardando comunicacao
+
+## Lista de Achados
+
+### Colunas da Tabela
+
+| Coluna | Descricao |
+|--------|-----------|
+| **Achado** | Descricao do achado critico |
+| **Severidade** | Nivel de urgencia (Critico, Urgente) |
+| **Laudo** | Laudo de origem do achado |
+| **Data** | Quando foi detectado |
+| **Status** | Estado atual (Comunicado, Pendente) |
+| **Acoes** | Link para ver detalhes |
+
+## Niveis de Severidade
+
+<CardGroup cols={2}>
+  <Card title="Critico" icon="circle-exclamation" color="#ef4444">
+    Requer comunicacao imediata em ate **1 hora**
+  </Card>
+  <Card title="Urgente" icon="triangle-exclamation" color="#f59e0b">
+    Requer comunicacao em ate **3 horas**
+  </Card>
+</CardGroup>
+
+## Exemplos de Achados Criticos
+
+- Fistula pancreatoportal
+- Apendice cecal perfurado
+- Lesao expansiva cerebral com efeito de massa
+- Fistula aortoenterica
+- Pancreatite aguda necrosante
+- Fraturas costais com torax instavel
+- Hematomas cerebrais
+- Aneurisma de aorta
+- Tromboembolismo pulmonar
+- Fraturas vertebrais com retropulsao
+
+## Filtros e Busca
+
+- **Filtro por severidade**: Todos, Critico, Urgente
+- **Filtro por status**: Todos, Comunicado, Pendente
+- **Pesquisa**: Buscar por descricao do achado
+
+## Exportacao
+
+Clique em **Exportar** para gerar relatorio dos achados criticos.
+
+<Warning>
+A comunicacao de achados criticos e obrigatoria conforme orientacao do Colegio Brasileiro de Radiologia (CBR). Mantenha registro de todas as comunicacoes realizadas.
+</Warning>

@@ -1,0 +1,99 @@
+---
+title: 'Editor de Laudos'
+description: 'Interface principal para criacao e edicao de laudos medicos'
+---
+
+# Editor de Laudos
+
+O Editor e a interface principal para criar, editar e gerenciar laudos medicos.
+
+## Layout da Interface
+
+### Barra Superior
+
+- **Menu hamburguer**: Acesso as configuracoes gerais
+- **Sugerir melhoria**: Enviar feedback para a equipe
+- **Buscar laudos**: Pesquisa rapida (atalho: Cmd+K)
+- **Dashboard**: Retornar ao painel de controle
+- **Salvar**: Salvar laudo atual
+- **Tutorial**: Assistir tutorial em video
+
+### Barra Lateral Esquerda (Laudos Recentes)
+
+Lista os ultimos 15 laudos com:
+- Titulo e data
+- Tags: Voz, Auto-gerado, Modelo utilizado
+- Categoria (Radiologia, etc.)
+
+### Area Principal do Editor
+
+#### Ferramentas de Formatacao
+
+| Botao | Funcao | Atalho |
+|-------|--------|--------|
+| **B** | Negrito | Cmd+B |
+| *I* | Italico | Cmd+I |
+| U | Sublinhado | Cmd+U |
+| **H1** | Titulo 1 | - |
+| **H2** | Titulo 2 | - |
+| Lista | Lista nao numerada | - |
+| Lista Numerada | Lista ordenada | - |
+
+#### Ferramentas Especiais
+
+- **Buscar Artigos**: Pesquisa referencias cientificas
+- **Extrair Frases**: Extrai frases do texto para salvar
+- **Crit**: Analise de achados criticos
+- **Copiar**: Copia o laudo para area de transferencia
+- **Atalhos**: Lista de atalhos de teclado
+- **Publicar**: Finaliza e publica o laudo
+
+## Criando um Novo Laudo
+
+<Steps>
+  <Step title="Escolha o Metodo">
+    - **Ditar laudo**: Pressione **Espaco** para iniciar ditado por voz
+    - **Selecionar modelo**: Escolha um template existente
+    - **Em branco**: Inicie do zero
+    - **Digitar**: Comece digitando diretamente
+  </Step>
+
+  <Step title="Modelos Frequentes">
+    Acesso rapido aos templates mais usados:
+    - rededorabdcom
+    - TORAXrede
+    - abdhaoc
+    - ABDTOTALHSC
+    - toraxhaoc
+  </Step>
+
+  <Step title="Edite o Conteudo">
+    Use as ferramentas de formatacao e a assistencia de IA para completar o laudo.
+  </Step>
+
+  <Step title="Salve e Publique">
+    Clique em **Salvar** ou use o salvamento automatico.
+  </Step>
+</Steps>
+
+## Barra de Status Inferior
+
+- **Caracteres**: Contagem de caracteres (ex: 1.904)
+- **Palavras**: Contagem de palavras (ex: 381)
+- **Ditado por voz**: Atalho Alt
+- **Salvar**: Atalho Cmd+S
+- **Buscar**: Atalho Cmd+K
+- **Formato**: Seletor de formato (Moderno)
+- **Limpar**: Limpa o editor
+- **Novo**: Cria novo laudo
+
+## Painel de Achados Criticos
+
+A direita do editor, o painel **Achados Relevantes** exibe:
+- Monitoramento automatico de achados
+- Contagem de achados criticos detectados
+- Botao para reanalisar achados
+
+<Warning>
+Conforme orientacao do CBR, achados **criticos** exigem comunicacao em ate 1 hora. Achados **urgentes nao criticos** devem ser comunicados em ate 3 horas.
+</Warning>

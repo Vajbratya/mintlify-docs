@@ -1,0 +1,62 @@
+---
+title: 'Biblioteca de Laudos'
+description: 'Gerencie todos os seus laudos em um so lugar'
+---
+
+# Biblioteca de Laudos
+
+Acesse todos os seus laudos criados e gerencie-os de forma centralizada.
+
+## Navegacao
+
+Acesse via menu lateral: **Biblioteca > Laudos** ou pela URL `/dashboard/reports`
+
+## Interface da Biblioteca
+
+### Filtros Disponiveis
+
+- **Todos**: Exibe todos os tipos de laudos
+- **Todas as organizacoes**: Filtra por organizacao
+
+### Pesquisa
+
+Use o campo de busca para localizar laudos por titulo ou conteudo.
+
+### Tabela de Laudos
+
+| Coluna | Descricao |
+|--------|-----------|
+| **Titulo** | Nome do laudo com data |
+| **Tipo** | Categoria ou modelo usado |
+| **Data** | Data de criacao |
+| **Versao** | Versao do laudo (v1, v2, etc.) |
+| **Acoes** | Editar, opcoes adicionais |
+
+## Tipos de Laudos
+
+<AccordionGroup>
+  <Accordion title="Laudo por Voz">
+    Laudos criados atraves de ditado por voz, marcados com tags "Voz" e "Auto-gerado"
+  </Accordion>
+
+  <Accordion title="Laudo por Modelo">
+    Laudos baseados em templates, exibem o nome do modelo utilizado
+  </Accordion>
+
+  <Accordion title="Laudo Manual">
+    Laudos digitados manualmente sem uso de templates
+  </Accordion>
+</AccordionGroup>
+
+## Acoes Disponiveis
+
+- **Novo Laudo**: Abre o editor para criar novo laudo
+- **Editar**: Abre o laudo no editor
+- **Menu de opcoes**: Acoes adicionais por laudo
+
+## Paginacao
+
+A biblioteca exibe 50 laudos por pagina com navegacao:
+- Botoes Anterior/Proxima
+- Indicador de pagina atual (ex: Pagina 1 de 26)
+- Total de laudos (ex: Mostrando 1 a 50 de 1300 laudos)
