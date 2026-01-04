@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "venus",
   "name": "Laudos.AI",
   "colors": {
     "primary": "#6366F1",
@@ -14,7 +14,7 @@
         "tab": "Manual",
         "groups": [
           {
-            "group": "Inicio",
+            "group": "Início",
             "pages": ["index", "quickstart", "autenticacao"]
           },
           {
@@ -33,7 +33,7 @@
             ]
           },
           {
-            "group": "Configuracoes",
+            "group": "Configurações",
             "pages": [
               "configuracoes/frases-prontas",
               "configuracoes/preferencias",
@@ -52,21 +52,21 @@
         },
         {
           "anchor": "Suporte",
-          "href": "mailto:suporte@laudos.ai",
+          "href": "mailto:oi@laudos.ai",
           "icon": "headset"
         }
       ]
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/light.png",
+    "dark": "/logo/dark.png"
   },
   "navbar": {
     "links": [
       {
         "label": "Suporte",
-        "href": "mailto:suporte@laudos.ai"
+        "href": "mailto:oi@laudos.ai"
       }
     ],
     "primary": {

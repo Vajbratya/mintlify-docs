@@ -1,65 +1,65 @@
 ---
 title: 'Editor de Laudos'
-description: 'Interface principal para criacao e edicao de laudos medicos'
+description: 'Interface principal para criação e edição de laudos médicos'
 ---
 
 # Editor de Laudos
 
-O Editor e a interface principal para criar, editar e gerenciar laudos medicos.
+O Editor é a interface principal para criar, editar e gerenciar laudos médicos.
 
 ## Layout da Interface
 
 ### Barra Superior
 
-- **Menu hamburguer**: Acesso as configuracoes gerais
+- **Menu hambúrguer**: Acesso às configurações gerais
 - **Sugerir melhoria**: Enviar feedback para a equipe
-- **Buscar laudos**: Pesquisa rapida (atalho: Cmd+K)
+- **Buscar laudos**: Pesquisa rápida (atalho: Cmd+K)
 - **Dashboard**: Retornar ao painel de controle
 - **Salvar**: Salvar laudo atual
-- **Tutorial**: Assistir tutorial em video
+- **Tutorial**: Assistir tutorial em vídeo
 
 ### Barra Lateral Esquerda (Laudos Recentes)
 
-Lista os ultimos 15 laudos com:
-- Titulo e data
+Lista os últimos 15 laudos com:
+- Título e data
 - Tags: Voz, Auto-gerado, Modelo utilizado
 - Categoria (Radiologia, etc.)
 
-### Area Principal do Editor
+### Área Principal do Editor
 
-#### Ferramentas de Formatacao
+#### Ferramentas de Formatação
 
-| Botao | Funcao | Atalho |
+| Botão | Função | Atalho |
 |-------|--------|--------|
 | **B** | Negrito | Cmd+B |
-| *I* | Italico | Cmd+I |
+| *I* | Itálico | Cmd+I |
 | U | Sublinhado | Cmd+U |
-| **H1** | Titulo 1 | - |
-| **H2** | Titulo 2 | - |
-| Lista | Lista nao numerada | - |
+| **H1** | Título 1 | - |
+| **H2** | Título 2 | - |
+| Lista | Lista não numerada | - |
 | Lista Numerada | Lista ordenada | - |
 
 #### Ferramentas Especiais
 
-- **Buscar Artigos**: Pesquisa referencias cientificas
+- **Buscar Artigos**: Pesquisa referências científicas
 - **Extrair Frases**: Extrai frases do texto para salvar
-- **Crit**: Analise de achados criticos
-- **Copiar**: Copia o laudo para area de transferencia
+- **Crit**: Análise de achados críticos
+- **Copiar**: Copia o laudo para área de transferência
 - **Atalhos**: Lista de atalhos de teclado
 - **Publicar**: Finaliza e publica o laudo
 
 ## Criando um Novo Laudo
 
 <Steps>
-  <Step title="Escolha o Metodo">
-    - **Ditar laudo**: Pressione **Espaco** para iniciar ditado por voz
+  <Step title="Escolha o Método">
+    - **Ditar laudo**: Pressione **Espaço** para iniciar ditado por voz
     - **Selecionar modelo**: Escolha um template existente
     - **Em branco**: Inicie do zero
     - **Digitar**: Comece digitando diretamente
   </Step>
 
   <Step title="Modelos Frequentes">
-    Acesso rapido aos templates mais usados:
+    Acesso rápido aos templates mais usados:
     - rededorabdcom
     - TORAXrede
     - abdhaoc
@@ -67,12 +67,12 @@ Lista os ultimos 15 laudos com:
     - toraxhaoc
   </Step>
 
-  <Step title="Edite o Conteudo">
-    Use as ferramentas de formatacao e a assistencia de IA para completar o laudo.
+  <Step title="Edite o Conteúdo">
+    Use as ferramentas de formatação e a assistência de IA para completar o laudo.
   </Step>
 
   <Step title="Salve e Publique">
-    Clique em **Salvar** ou use o salvamento automatico.
+    Clique em **Salvar** ou use o salvamento automático.
   </Step>
 </Steps>
 
@@ -80,20 +80,20 @@ Lista os ultimos 15 laudos com:
 
 - **Caracteres**: Contagem de caracteres (ex: 1.904)
 - **Palavras**: Contagem de palavras (ex: 381)
-- **Ditado por voz**: Atalho Alt
+- **Ditado por voz**: Atalho Alt+M
 - **Salvar**: Atalho Cmd+S
 - **Buscar**: Atalho Cmd+K
 - **Formato**: Seletor de formato (Moderno)
 - **Limpar**: Limpa o editor
 - **Novo**: Cria novo laudo
 
-## Painel de Achados Criticos
+## Painel de Achados Críticos
 
-A direita do editor, o painel **Achados Relevantes** exibe:
-- Monitoramento automatico de achados
-- Contagem de achados criticos detectados
-- Botao para reanalisar achados
+À direita do editor, o painel **Achados Relevantes** exibe:
+- Monitoramento automático de achados
+- Contagem de achados críticos detectados
+- Botão para reanalisar achados
 
 <Warning>
-Conforme orientacao do CBR, achados **criticos** exigem comunicacao em ate 1 hora. Achados **urgentes nao criticos** devem ser comunicados em ate 3 horas.
+Conforme orientação do CBR, achados **críticos** exigem comunicação em até 1 hora. Achados **urgentes não críticos** devem ser comunicados em até 3 horas.
 </Warning>
