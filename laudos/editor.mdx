@@ -1,117 +1,557 @@
 ---
 title: 'Editor de Laudos'
-description: 'Interface principal para criação e edição de laudos médicos'
+description: 'Interface principal para criação e edição de laudos médicos com IA'
 ---
 
 # Editor de Laudos
 
-O Editor é a interface principal para criar, editar e gerenciar laudos médicos.
+O Editor é a interface principal do Laudos.AI para criar, editar e gerenciar laudos médicos. Combina edição de texto rica, ditado por voz, assistência de IA e templates pré-configurados.
 
 Acesse via **Principal > Editor** ou pela URL `/`
 
 <Warning>
-**Aviso de Privacidade**: Não insira informações de saúde protegidas (PHI) ou dados pessoais identificáveis nos campos do editor.
+**Aviso de Privacidade**: Não insira informações de saúde protegidas (PHI) ou dados pessoais identificáveis nos campos do editor. O sistema exibe um alerta amarelo que deve ser confirmado com "OK" antes de iniciar.
 </Warning>
 
-## Layout da Interface
+---
 
-### Barra Superior
+## Visão Geral da Interface
 
-- **Menu hambúrguer**: Acesso às configurações gerais
-- **Sugerir melhoria**: Enviar feedback para a equipe
-- **Buscar laudos**: Pesquisa rápida (atalho: Cmd+K)
-- **Dashboard**: Retornar ao painel de controle
-- **Salvar**: Salvar laudo atual
-- **Tutorial**: Assistir tutorial em vídeo
+O Editor utiliza um layout de três colunas otimizado para telas 1920x1080:
 
-### Barra Lateral Esquerda (Laudos Recentes)
-
-Lista os últimos 15 laudos com:
-- Título e data
-- Tags: Voz, Auto-gerado, Modelo utilizado
-- Categoria (Radiologia, etc.)
-
-### Área Principal do Editor
-
-#### Ferramentas de Formatação
-
-| Botão | Função | Atalho |
-|-------|--------|--------|
-| **B** | Negrito | Cmd+B |
-| *I* | Itálico | Cmd+I |
-| U | Sublinhado | Cmd+U |
-| **H1** | Título 1 | - |
-| **H2** | Título 2 | - |
-| Lista | Lista não numerada | - |
-| Lista Numerada | Lista ordenada | - |
-
-#### Ferramentas Especiais
-
-<CardGroup cols={2}>
-  <Card title="Buscar Artigos" icon="magnifying-glass">
-    Pesquisa referências científicas relacionadas ao seu laudo
+<CardGroup cols={3}>
+  <Card title="Barra Lateral Esquerda" icon="sidebar">
+    Laudos recentes (até 15) com acesso rápido
   </Card>
-  <Card title="Extrair Frases" icon="quote-left">
-    Extrai frases do texto para salvar na sua biblioteca de frases prontas
+  <Card title="Área Central" icon="pen-to-square">
+    Editor principal com ferramentas de formatação
   </Card>
-  <Card title="Crit" icon="triangle-exclamation">
-    Análise automática de achados críticos no laudo
-  </Card>
-  <Card title="Copiar" icon="copy">
-    Copia o laudo para área de transferência
+  <Card title="Painel Direito" icon="triangle-exclamation">
+    Monitoramento de achados críticos
   </Card>
 </CardGroup>
 
-**Outras ações:**
-- **Atalhos**: Mostra lista de atalhos de teclado
-- **Mais**: Menu com opções adicionais
-- **Publicar**: Finaliza e publica o laudo
+---
+
+## Barra Superior
+
+A barra de navegação superior contém todas as ações principais:
+
+### Lado Esquerdo
+
+| Elemento | Função |
+|----------|--------|
+| **☰ Menu** | Abre configurações gerais |
+| **Sugerir melhoria** | Envia feedback para a equipe |
+| **Buscar laudos... ⌘K** | Pesquisa rápida em todos os laudos |
+
+### Lado Direito
+
+| Elemento | Função |
+|----------|--------|
+| **Dashboard** | Retorna ao painel de controle |
+| **Salvar** | Salva o laudo atual (botão primário azul) |
+| **▶️ Tutorial** | Assiste tutorial em vídeo |
+| **🔄 Rever tutorial** | Repete o tutorial de onboarding |
+| **❓ Ajuda** | Abre "Como usar?" |
+| **🔔 Notificações** | Exibe alertas (badge com contador, ex: "9+") |
+
+---
+
+## Barra Lateral - Laudos Recentes
+
+### Funcionalidades
+
+<ParamField body="Laudos recentes (máx. 15)" type="lista">
+  Exibe os últimos 15 laudos criados com acesso rápido para edição.
+</ParamField>
+
+<ParamField body="Ocultar barra lateral" type="botão">
+  Colapsa a sidebar para maximizar área de edição.
+</ParamField>
+
+### Informações por Laudo
+
+Cada entrada na lista exibe:
+
+- **Título** do laudo ou exame
+- **Data** de criação (formato: DD/MM/YYYY)
+- **Tempo relativo** (ex: "há cerca de 2 horas")
+- **Categoria** (Radiologia, Tomografia, etc.)
+
+### Badges Indicadores
+
+| Badge | Significado |
+|-------|-------------|
+| `Voz` | Laudo criado por ditado de voz |
+| `Auto-gerado` | Conteúdo gerado automaticamente pela IA |
+| `Nome do modelo` | Template utilizado na criação |
+
+### Tipos de Laudos Comuns
+
+Na sidebar você encontrará laudos como:
+- TC ABD TOTAL (Tomografia Abdômen Total)
+- TC PESCOCO (Tomografia Pescoço)
+- TC PESCOCO E FACE
+- Tomografia Computadorizada do Tórax
+- TC ABD PELVE
+- TC OMBRO ESQ
+
+<Tip>
+Clique em **"Ver todos"** no final da lista para acessar a biblioteca completa de laudos.
+</Tip>
+
+---
+
+## Área Principal do Editor
+
+### Estado Inicial
+
+Ao abrir um novo laudo, você verá:
+
+1. **Prompt central**: "Ditar laudo"
+2. **Subtítulo**: "Espaço para iniciar"
+3. **Botão de microfone**: Botão circular grande (64x64px) no centro
+4. **Seletor de modelo**: "Selecionar modelo (opcional)"
+
+### Modelos Frequentes
+
+Seus templates mais usados aparecem como pills clicáveis:
+
+`rededorabdcom` `TORAXrede` `abdhaoc` `ABDTOTALHSC` `toraxhaoc`
+
+<Info>
+Os nomes dos modelos refletem convenções institucionais. Templates podem incluir siglas de hospitais (HSC, HAOC) ou redes (rede).
+</Info>
+
+### Opções de Início
+
+| Opção | Descrição |
+|-------|-----------|
+| **Ditar laudo** | Pressione Espaço ou clique no microfone |
+| **Selecionar modelo** | Escolha um template existente |
+| **Em branco** | Inicie do zero sem template |
+| **Digitar** | Comece digitando diretamente |
+
+---
 
 ## Criando um Novo Laudo
 
 <Steps>
-  <Step title="Escolha o Método">
-    - **Ditar laudo**: Pressione **Espaço** para iniciar ditado por voz
-    - **Selecionar modelo**: Escolha um template existente
-    - **Em branco**: Inicie do zero
-    - **Digitar**: Comece digitando diretamente
+  <Step title="Escolha o Método de Criação">
+    Você tem 4 opções:
+
+    **1. Ditado por Voz** - Clique no microfone ou pressione `Espaço`
+
+    **2. Template** - Clique em "Selecionar modelo" e escolha um template
+
+    **3. Em Branco** - Clique no botão "Em branco" para começar do zero
+
+    **4. Digitação** - Clique em "Digitar" para começar a escrever
   </Step>
 
-  <Step title="Modelos Frequentes">
-    Acesso rápido aos seus templates mais usados. Aparece uma seção **"Modelos frequentes"** com pills clicáveis:
-
-    `rededorabdcom` `TORAXrede` `abdhaoc` `ABDTOTALHSC` `toraxhaoc`
-
-    Ou escolha **"Em branco"** para começar do zero ou **"Digitar"** para digitar diretamente.
+  <Step title="Crie o Conteúdo">
+    - **Por voz**: Fale naturalmente, ex: *"gerar laudo de TC de tórax com achados normais"*
+    - **Por template**: Preencha os campos do modelo selecionado
+    - **Manual**: Use o editor de texto rico com formatação
   </Step>
 
-  <Step title="Edite o Conteúdo">
-    Use as ferramentas de formatação e a assistência de IA para completar o laudo.
+  <Step title="Formate e Revise">
+    Use a barra de ferramentas para:
+    - Aplicar negrito, itálico, sublinhado
+    - Adicionar títulos (H1, H2)
+    - Criar listas numeradas ou com marcadores
+    - Desfazer/refazer alterações
+  </Step>
+
+  <Step title="Use Ferramentas de IA">
+    - **Buscar Artigos**: Encontre referências científicas
+    - **Extrair Frases**: Salve frases para reutilizar
+    - **Crit**: Analise achados críticos automaticamente
   </Step>
 
   <Step title="Salve e Publique">
-    Clique em **Salvar** ou use o salvamento automático.
+    - Clique em **Salvar** (ou `Cmd+S`)
+    - Use **Copiar** para enviar ao PACS/RIS
+    - Clique em **Publicar** para finalizar
   </Step>
 </Steps>
 
+---
+
+## Ditado por Voz
+
+O ditado por voz é uma funcionalidade central do Laudos.AI, destacada no passo 2 do tutorial de onboarding.
+
+### Como Usar
+
+<Steps>
+  <Step title="Ative o Microfone">
+    Clique no botão circular de microfone no centro do editor, ou use o atalho `Alt+M`.
+  </Step>
+
+  <Step title="Fale Naturalmente">
+    Dite seu laudo em português. Exemplo do tutorial:
+
+    > *"gerar laudo de TC de tórax com achados normais"*
+  </Step>
+
+  <Step title="Transcrição Automática">
+    O sistema transcreve sua fala em tempo real e exibe o texto no editor.
+  </Step>
+
+  <Step title="Geração do Laudo">
+    A IA processa a transcrição e gera um laudo estruturado automaticamente.
+  </Step>
+</Steps>
+
+### Controles de Voz
+
+| Ação | Método |
+|------|--------|
+| Ativar/Desativar microfone | Clique no ícone 🎤 ou `Alt+M` |
+| Pausar/Retomar ditado | Pressione `Espaço` |
+| Busca global | `Cmd+K` |
+
+### Especificações Técnicas
+
+<AccordionGroup>
+  <Accordion title="Ícone do Microfone">
+    - **Biblioteca**: Lucide Icons
+    - **Nome**: `mic`
+    - **Tamanho**: 16x16px (h-4 w-4)
+    - **Cor**: Cinza médio (text-muted-foreground)
+  </Accordion>
+
+  <Accordion title="Requisitos do Navegador">
+    - Permissão de microfone necessária
+    - Navegador moderno com Web Speech API
+    - Conexão estável com internet
+  </Accordion>
+</AccordionGroup>
+
+### Laudos por Voz na Sidebar
+
+Laudos criados por voz são identificados na sidebar com:
+- Badge **"Voz"** em azul
+- Badge **"Auto-gerado"** quando a IA estruturou o conteúdo
+
+<Tip>
+No tutorial de boas-vindas, clique em **"Testar voz"** para experimentar a funcionalidade antes de criar seu primeiro laudo.
+</Tip>
+
+---
+
+## Ferramentas de IA
+
+<CardGroup cols={2}>
+  <Card title="Buscar Artigos" icon="magnifying-glass" href="#buscar-artigos">
+    Pesquisa literatura médica e referências científicas relacionadas ao conteúdo do seu laudo.
+  </Card>
+  <Card title="Extrair Frases" icon="quote-left" href="#extrair-frases">
+    Identifica e extrai frases do texto para salvar na sua biblioteca de frases prontas.
+  </Card>
+  <Card title="Crit" icon="triangle-exclamation" href="#crit">
+    Análise automática de achados críticos seguindo diretrizes do CBR.
+  </Card>
+  <Card title="Copiar" icon="copy" href="#copiar">
+    Copia o laudo formatado para a área de transferência, pronto para colar no PACS/RIS.
+  </Card>
+</CardGroup>
+
+### Buscar Artigos
+
+Pesquisa referências científicas relevantes ao conteúdo do seu laudo.
+
+- **Localização**: Barra de ferramentas principal
+- **Estilo**: Botão de ação primário com ícone
+- **Uso**: Clique para abrir painel de pesquisa
+
+### Extrair Frases
+
+Extrai frases do laudo atual para adicionar à sua biblioteca pessoal.
+
+- **Localização**: Ao lado de "Buscar Artigos"
+- **Funcionalidade**: Seleciona automaticamente frases relevantes
+- **Destino**: Salva em Configurações > Frases Prontas
+
+### Crit
+
+Análise automática de achados críticos no laudo.
+
+- **Botão**: Compacto (h-7, text-xs) com label "Crit"
+- **Funcionalidade**: Detecta achados que requerem comunicação urgente
+- **Integração**: Conecta com o painel de Achados Críticos
+
+<Warning>
+Conforme orientação do CBR:
+- **Achados críticos**: Comunicação em até **1 hora**
+- **Achados urgentes não críticos**: Comunicação em até **3 horas**
+</Warning>
+
+### Copiar
+
+Copia o conteúdo do laudo para a área de transferência.
+
+- **Botão**: "Copiar" com ícone de clipboard
+- **Formato**: Texto formatado pronto para PACS/RIS
+- **Atalho**: Disponível via menu "Mais"
+
+---
+
+## Barra de Ferramentas de Formatação
+
+A barra de ferramentas está posicionada no topo da área de edição.
+
+### Formatação de Texto
+
+| Botão | Função | Atalho | Toggle |
+|-------|--------|--------|--------|
+| **B** | Negrito | `Cmd+B` | ✅ |
+| *I* | Itálico | `Cmd+I` | ✅ |
+| <u>U</u> | Sublinhado | `Cmd+U` | ✅ |
+
+### Estilos de Título
+
+| Botão | Função | Descrição |
+|-------|--------|-----------|
+| **H1** | Título 1 | Títulos principais de seção |
+| **H2** | Título 2 | Subtítulos |
+
+### Listas
+
+| Botão | Função | Descrição |
+|-------|--------|-----------|
+| • Lista | Lista com marcadores | Itens não ordenados |
+| 1. Lista Numerada | Lista ordenada | Itens em sequência |
+
+### Histórico de Edição
+
+| Botão | Função | Atalho |
+|-------|--------|--------|
+| ↶ Desfazer | Desfaz última ação | `Cmd+Z` |
+| ↷ Refazer | Refaz ação desfeita | `Cmd+Shift+Z` |
+
+### Menu "Mais"
+
+O botão "Mais" abre um dropdown com opções adicionais de formatação e ações.
+
+---
+
 ## Barra de Status Inferior
 
-- **Caracteres**: Contagem de caracteres (ex: 1.904)
-- **Palavras**: Contagem de palavras (ex: 381)
-- **Ditado por voz**: Atalho Alt+M
-- **Salvar**: Atalho Cmd+S
-- **Buscar**: Atalho Cmd+K
-- **Formato**: Seletor de formato (Moderno)
-- **Limpar**: Limpa o editor
-- **Novo**: Cria novo laudo
+A barra inferior exibe estatísticas e ações rápidas:
+
+| Elemento | Descrição | Exemplo |
+|----------|-----------|---------|
+| **Caracteres** | Contagem total de caracteres | 1.904 |
+| **Palavras** | Contagem total de palavras | 381 |
+| **Ditado por voz** | Atalho para microfone | `Alt+M` |
+| **Salvar** | Atalho para salvar | `Cmd+S` |
+| **Buscar** | Atalho para busca global | `Cmd+K` |
+| **Formato** | Seletor de formato | "Moderno" / "Sem formatação" |
+| **Limpar** | Limpa todo o conteúdo do editor | - |
+| **Novo** | Cria um novo laudo | Botão primário |
+
+---
 
 ## Painel de Achados Críticos
 
-À direita do editor, o painel **Achados Relevantes** exibe:
-- Monitoramento automático de achados
-- Contagem de achados críticos detectados
-- Botão para reanalisar achados
+À direita do editor, o painel **"Achados Relevantes"** monitora automaticamente o conteúdo.
 
-<Warning>
-Conforme orientação do CBR, achados **críticos** exigem comunicação em até 1 hora. Achados **urgentes não críticos** devem ser comunicados em até 3 horas.
-</Warning>
+### Funcionalidades
+
+- **Monitoramento em tempo real**: Analisa o texto enquanto você digita
+- **Contador de achados**: Exibe quantidade de achados críticos detectados
+- **Reanalisar**: Botão para forçar nova análise do conteúdo
+
+### Classificação de Achados
+
+| Tipo | Tempo de Comunicação | Cor |
+|------|---------------------|-----|
+| **Crítico** | Até 1 hora | 🔴 Vermelho |
+| **Urgente não crítico** | Até 3 horas | 🟡 Amarelo |
+| **Relevante** | Rotina | 🔵 Azul |
+
+<Info>
+A classificação segue as diretrizes do Colégio Brasileiro de Radiologia (CBR) para comunicação de achados.
+</Info>
+
+---
+
+## Atalhos de Teclado
+
+### Atalhos Globais
+
+| Atalho | Função |
+|--------|--------|
+| `Cmd+K` | Abrir busca global |
+| `Cmd+N` | Novo laudo |
+| `Cmd+S` | Salvar laudo |
+| `Alt+M` | Ativar/desativar microfone |
+| `Espaço` | Pausar/retomar ditado (durante gravação) |
+
+### Formatação de Texto
+
+| Atalho | Função |
+|--------|--------|
+| `Cmd+B` | Negrito |
+| `Cmd+I` | Itálico |
+| `Cmd+U` | Sublinhado |
+| `Cmd+Z` | Desfazer |
+| `Cmd+Shift+Z` | Refazer |
+
+<Tip>
+Clique no botão **"Atalhos"** na barra de ferramentas para ver a lista completa de atalhos disponíveis.
+</Tip>
+
+---
+
+## Botões de Ação
+
+### Barra de Ferramentas Direita
+
+| Botão | Tamanho | Função |
+|-------|---------|--------|
+| **Crit** | Compacto | Analisa achados críticos |
+| **Copiar** | Pequeno | Copia laudo para clipboard |
+| **Atalhos** | Pequeno | Mostra lista de atalhos |
+| **Mais** | Dropdown | Opções adicionais |
+| **Publicar** | Médio | Finaliza e publica o laudo |
+
+### Área Inferior
+
+| Botão | Estilo | Função |
+|-------|--------|--------|
+| **Limpar** | Secundário | Remove todo conteúdo |
+| **Novo** | Primário (azul) | Cria novo laudo |
+
+---
+
+## Sistema de Templates
+
+### Tipos de Templates Disponíveis
+
+Templates são organizados por categoria:
+
+<AccordionGroup>
+  <Accordion title="Radiologia de Tórax">
+    - TORAXrede
+    - toraxhaoc
+    - Tomografia Computadorizada do Tórax
+  </Accordion>
+
+  <Accordion title="Abdômen">
+    - abdhaoc
+    - ABDTOTALHSC
+    - rededorabdcom
+    - TC ABD TOTAL
+    - TC ABD PELVE
+  </Accordion>
+
+  <Accordion title="Outras Regiões">
+    - TC PESCOCO
+    - TC PESCOCO E FACE
+    - TC OMBRO ESQ
+  </Accordion>
+</AccordionGroup>
+
+### Convenções de Nomenclatura
+
+Os templates frequentemente seguem padrões institucionais:
+- **HSC**: Hospital Santa Casa
+- **HAOC**: Hospital Alemão Oswaldo Cruz
+- **rede**: Redes de diagnóstico
+
+### Como Usar Templates
+
+1. Clique em **"Selecionar modelo (opcional)"**
+2. Escolha um dos modelos frequentes (pills) ou busque na lista completa
+3. O template é carregado no editor
+4. Preencha os campos específicos do exame
+5. Salve ou publique quando finalizado
+
+---
+
+## Recursos de Acessibilidade
+
+O Editor implementa boas práticas de acessibilidade:
+
+- **aria-label** em todos os botões de ícone
+- **focus-visible** com anéis de foco visíveis
+- **Navegação por teclado** completa
+- **Atalhos de teclado** documentados
+- **Contraste adequado** nos elementos interativos
+
+---
+
+## Fluxos de Trabalho
+
+### Fluxo 1: Ditado por Voz (Mais Rápido)
+
+```
+Novo → 🎤 Microfone → Falar → IA Transcreve → Revisar → Salvar
+```
+
+### Fluxo 2: Com Template (Padronizado)
+
+```
+Novo → Selecionar Modelo → Preencher Campos → Formatar → Salvar
+```
+
+### Fluxo 3: Digitação Manual (Flexível)
+
+```
+Novo → Digitar → Formatar → Buscar Artigos → Salvar
+```
+
+### Fluxo 4: Em Branco (Livre)
+
+```
+Novo → Em Branco → Criar Livremente → Salvar
+```
+
+---
+
+## Dicas e Truques
+
+<AccordionGroup>
+  <Accordion title="Acelere com Ditado por Voz">
+    Use comandos naturais como *"gerar laudo de [tipo de exame] com [achados]"*. A IA entende contexto e gera laudos estruturados automaticamente.
+  </Accordion>
+
+  <Accordion title="Crie Templates Personalizados">
+    Salve laudos recorrentes como modelos em **Biblioteca > Modelos** para reutilizar com um clique.
+  </Accordion>
+
+  <Accordion title="Monitore Achados Críticos">
+    Mantenha o painel de achados visível durante a edição. A detecção automática ajuda a não perder comunicações urgentes.
+  </Accordion>
+
+  <Accordion title="Use Frases Prontas">
+    Extraia frases frequentes dos seus laudos com "Extrair Frases" e configure em **Configurações > Frases Prontas** para a IA usar literalmente.
+  </Accordion>
+
+  <Accordion title="Atalho Cmd+K">
+    Use `Cmd+K` a qualquer momento para buscar laudos rapidamente sem sair do editor.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Próximos Passos
+
+<CardGroup cols={2}>
+  <Card title="Biblioteca de Modelos" icon="folder-open" href="/biblioteca/modelos">
+    Explore e gerencie seus templates
+  </Card>
+  <Card title="Frases Prontas" icon="quote-left" href="/configuracoes/frases-prontas">
+    Configure frases que a IA usa nos laudos
+  </Card>
+  <Card title="Achados Críticos" icon="triangle-exclamation" href="/monitoramento/achados-criticos">
+    Monitore comunicações urgentes
+  </Card>
+  <Card title="Preferências" icon="gear" href="/configuracoes/preferencias">
+    Personalize o editor
+  </Card>
+</CardGroup>
