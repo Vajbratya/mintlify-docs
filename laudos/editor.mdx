@@ -7,6 +7,12 @@ description: 'Interface principal para criação e edição de laudos médicos'
 
 O Editor é a interface principal para criar, editar e gerenciar laudos médicos.
 
+Acesse via **Principal > Editor** ou pela URL `/`
+
+<Warning>
+**Aviso de Privacidade**: Não insira informações de saúde protegidas (PHI) ou dados pessoais identificáveis nos campos do editor.
+</Warning>
+
 ## Layout da Interface
 
 ### Barra Superior
@@ -41,11 +47,24 @@ Lista os últimos 15 laudos com:
 
 #### Ferramentas Especiais
 
-- **Buscar Artigos**: Pesquisa referências científicas
-- **Extrair Frases**: Extrai frases do texto para salvar
-- **Crit**: Análise de achados críticos
-- **Copiar**: Copia o laudo para área de transferência
-- **Atalhos**: Lista de atalhos de teclado
+<CardGroup cols={2}>
+  <Card title="Buscar Artigos" icon="magnifying-glass">
+    Pesquisa referências científicas relacionadas ao seu laudo
+  </Card>
+  <Card title="Extrair Frases" icon="quote-left">
+    Extrai frases do texto para salvar na sua biblioteca de frases prontas
+  </Card>
+  <Card title="Crit" icon="triangle-exclamation">
+    Análise automática de achados críticos no laudo
+  </Card>
+  <Card title="Copiar" icon="copy">
+    Copia o laudo para área de transferência
+  </Card>
+</CardGroup>
+
+**Outras ações:**
+- **Atalhos**: Mostra lista de atalhos de teclado
+- **Mais**: Menu com opções adicionais
 - **Publicar**: Finaliza e publica o laudo
 
 ## Criando um Novo Laudo
@@ -59,12 +78,11 @@ Lista os últimos 15 laudos com:
   </Step>
 
   <Step title="Modelos Frequentes">
-    Acesso rápido aos templates mais usados:
-    - rededorabdcom
-    - TORAXrede
-    - abdhaoc
-    - ABDTOTALHSC
-    - toraxhaoc
+    Acesso rápido aos seus templates mais usados. Aparece uma seção **"Modelos frequentes"** com pills clicáveis:
+
+    `rededorabdcom` `TORAXrede` `abdhaoc` `ABDTOTALHSC` `toraxhaoc`
+
+    Ou escolha **"Em branco"** para começar do zero ou **"Digitar"** para digitar diretamente.
   </Step>
 
   <Step title="Edite o Conteúdo">

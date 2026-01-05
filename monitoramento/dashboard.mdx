@@ -7,6 +7,34 @@ description: 'Visão geral da sua atividade e desempenho'
 
 O Dashboard fornece uma visão geral completa da sua atividade na plataforma.
 
+Acesse via **Principal > Painel** ou pela URL `/dashboard`
+
+## Primeiros Passos (Onboarding)
+
+Novos usuários são guiados através de um processo de onboarding com 4 etapas:
+
+<Steps>
+  <Step title="Crie seu primeiro laudo">
+    Clique em **'+'** no canto superior esquerdo ou use **Cmd+N**. Preencha os achados e clique em **'Gerar Laudo'** para criar automaticamente.
+  </Step>
+
+  <Step title="Dite seus laudos por voz">
+    Use o ditado por voz para criar laudos de forma mais rápida e natural.
+  </Step>
+
+  <Step title="Salve modelos reutilizáveis">
+    Crie templates para padronizar seus laudos e acelerar o trabalho.
+  </Step>
+
+  <Step title="Acompanhe achados críticos">
+    Monitore achados críticos conforme as diretrizes do CBR.
+  </Step>
+</Steps>
+
+<Info>
+Você pode clicar em **"Não mostrar novamente"** para desativar o onboarding, ou **"Pular"** para fechar temporariamente.
+</Info>
+
 ## Métricas Principais
 
 ### Laudos nos Últimos 30 Dias
@@ -24,6 +52,10 @@ Indica o tempo economizado em digitação durante o mês atual.
 ### Taxa de Uso
 
 Mostra a porcentagem de uso do seu plano (laudos usados / limite do plano).
+
+<Warning>
+Quando você se aproxima do limite do plano, um aviso aparece: **"Você está próximo do limite. Considere fazer upgrade do seu plano."**
+</Warning>
 
 ## Cards de Informação
 
@@ -58,3 +90,26 @@ Clique em **Ver todos os laudos** para acessar a biblioteca completa.
 | **+ Novo Laudo** | Abre o editor para criar um novo laudo |
 | **Achados críticos não reconhecidos** | Alerta para achados pendentes de comunicação |
 | **Gerenciar Plano** | Acessa configurações de assinatura |
+
+## Organizações (Novo!)
+
+Um banner no topo da sidebar destaca a nova funcionalidade de Organizações:
+
+> **Novo: Organizações**
+> Gerencie sua equipe, compartilhe templates e monitore achados críticos em tempo real.
+
+<CardGroup cols={3}>
+  <Card title="Gerenciamento de Equipe" icon="users">
+    Adicione membros da sua equipe médica
+  </Card>
+  <Card title="Templates Compartilhados" icon="share">
+    Compartilhe modelos com toda a organização
+  </Card>
+  <Card title="Monitoramento em Tempo Real" icon="monitor-waveform">
+    Acompanhe achados críticos da equipe
+  </Card>
+</CardGroup>
+
+<Note>
+O seletor **"Pessoal"** no topo da sidebar permite alternar entre sua conta pessoal e organizações vinculadas.
+</Note>
