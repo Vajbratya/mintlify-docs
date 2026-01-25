@@ -44,6 +44,34 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Developers",
+        "groups": [
+          {
+            "group": "API",
+            "icon": "code",
+            "pages": [
+              "developers/index",
+              "developers/autenticacao-api"
+            ]
+          },
+          {
+            "group": "Integrações",
+            "icon": "plug",
+            "pages": [
+              "developers/integracao-pacs",
+              "developers/webhooks"
+            ]
+          },
+          {
+            "group": "SDKs",
+            "icon": "cube",
+            "pages": [
+              "developers/sdk"
+            ]
+          }
+        ]
       }
     ],
     "global": {
@@ -80,7 +108,8 @@
   },
   "footer": {
     "socials": {
-      "linkedin": "https://linkedin.com/company/laudosai"
+      "linkedin": "https://linkedin.com/company/laudosai",
+      "github": "https://github.com/laudosai"
     }
   }
 }

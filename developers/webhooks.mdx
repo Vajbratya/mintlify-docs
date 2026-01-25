@@ -1,0 +1,164 @@
+---
+title: 'Webhooks'
+description: 'Receba notificações em tempo real sobre eventos no Laudos.AI'
+icon: 'webhook'
+---
+
+# Webhooks
+
+Webhooks permitem que sua aplicação receba notificações em tempo real quando eventos ocorrem no Laudos.AI.
+
+## Eventos Disponíveis
+
+| Evento | Descrição |
+|--------|-----------|
+| `report.created` | Novo laudo criado |
+| `report.finalized` | Laudo finalizado |
+| `report.sent` | Laudo enviado ao PACS |
+| `report.updated` | Laudo atualizado |
+| `critical_finding.detected` | Achado crítico identificado |
+| `connection.status_changed` | Status de conexão PACS alterado |
+
+## Configurar Webhook
+
+```bash
+POST /api/v1/webhooks
+Authorization: Bearer sk_live_xxx
+
+{
+  "url": "https://your-app.com/webhooks/laudosai",
+  "events": ["report.finalized", "critical_finding.detected"],
+  "secret": "whsec_your_signing_secret"
+}
+```
+
+## Payload do Webhook
+
+```json
+{
+  "id": "evt_xxxxxxxxxxxxxxxx",
+  "type": "report.finalized",
+  "created_at": "2024-01-15T10:30:00Z",
+  "data": {
+    "report_id": "rpt_xxxxx",
+    "exam_type": "RM Crânio",
+    "status": "final",
+    "has_critical_finding": false
+  }
+}
+```
+
+## Verificar Assinatura
+
+Todos os webhooks incluem um header `X-Laudos-Signature` para verificação.
+
+<CodeGroup>
+
+```javascript Node.js
+const crypto = require('crypto');
+
+function verifyWebhook(payload, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(`sha256=${expected}`)
+  );
+}
+
+// Express middleware
+app.post('/webhooks/laudosai', (req, res) => {
+  const signature = req.headers['x-laudos-signature'];
+  const isValid = verifyWebhook(
+    JSON.stringify(req.body),
+    signature,
+    process.env.WEBHOOK_SECRET
+  );
+
+  if (!isValid) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Processar evento
+  const event = req.body;
+  console.log(`Evento recebido: ${event.type}`);
+
+  res.status(200).send('OK');
+});
+```
+
+```python Python
+import hmac
+import hashlib
+
+def verify_webhook(payload: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+
+    return hmac.compare_digest(signature, f"sha256={expected}")
+
+# Flask
+@app.route('/webhooks/laudosai', methods=['POST'])
+def handle_webhook():
+    signature = request.headers.get('X-Laudos-Signature')
+    is_valid = verify_webhook(
+        request.data,
+        signature,
+        os.environ['WEBHOOK_SECRET']
+    )
+
+    if not is_valid:
+        return 'Invalid signature', 401
+
+    event = request.json
+    print(f"Evento recebido: {event['type']}")
+
+    return 'OK', 200
+```
+
+</CodeGroup>
+
+## Retentativas
+
+Se seu endpoint retornar um erro (status >= 400), tentaremos novamente:
+
+| Tentativa | Intervalo |
+|-----------|-----------|
+| 1ª | Imediata |
+| 2ª | 1 minuto |
+| 3ª | 5 minutos |
+| 4ª | 30 minutos |
+| 5ª | 2 horas |
+
+Após 5 falhas, o webhook é marcado como inativo.
+
+## Boas Práticas
+
+<AccordionGroup>
+  <Accordion title="Responda rapidamente">
+    Retorne 200 em até 5 segundos. Processe eventos de forma assíncrona.
+  </Accordion>
+  <Accordion title="Implemente idempotência">
+    Use o `id` do evento para evitar processamento duplicado.
+  </Accordion>
+  <Accordion title="Trate erros gracefully">
+    Log erros e retorne 200 para evitar retentativas desnecessárias.
+  </Accordion>
+</AccordionGroup>
+
+## Testar Webhooks
+
+Use nosso CLI para simular eventos:
+
+```bash
+npx @laudosai/cli webhooks trigger report.finalized \
+  --endpoint https://localhost:3000/webhooks
+```
+
+Ou no dashboard em **Configurações > Webhooks > Testar**.

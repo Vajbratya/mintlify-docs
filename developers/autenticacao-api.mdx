@@ -1,0 +1,123 @@
+---
+title: 'Autenticação'
+description: 'Como autenticar suas requisições à API do Laudos.AI'
+icon: 'key'
+---
+
+# Autenticação da API
+
+Todas as requisições à API do Laudos.AI devem ser autenticadas. Oferecemos dois métodos de autenticação.
+
+## API Keys
+
+A forma mais simples de autenticação. Ideal para integrações servidor-a-servidor.
+
+```bash
+curl -X GET "https://api.laudos.ai/v1/connections" \
+  -H "Authorization: Bearer sk_live_xxxxxxxxxxxxx"
+```
+
+<Warning>
+  Nunca exponha sua API Key em código client-side ou repositórios públicos.
+</Warning>
+
+### Tipos de Chaves
+
+| Prefixo | Ambiente | Uso |
+|---------|----------|-----|
+| `sk_live_` | Produção | Operações reais |
+| `sk_test_` | Sandbox | Testes e desenvolvimento |
+
+## OAuth 2.0
+
+Para aplicações que acessam dados em nome de usuários.
+
+### Fluxo Authorization Code
+
+```mermaid
+sequenceDiagram
+    participant App as Sua Aplicação
+    participant User as Usuário
+    participant Auth as Laudos.AI Auth
+    participant API as Laudos.AI API
+
+    App->>User: Redireciona para login
+    User->>Auth: Autoriza acesso
+    Auth->>App: Retorna authorization_code
+    App->>Auth: Troca code por access_token
+    Auth->>App: Retorna access_token
+    App->>API: Requisições com Bearer token
+```
+
+### Endpoints OAuth
+
+| Endpoint | URL |
+|----------|-----|
+| Authorize | `https://auth.laudos.ai/oauth/authorize` |
+| Token | `https://auth.laudos.ai/oauth/token` |
+| Revoke | `https://auth.laudos.ai/oauth/revoke` |
+
+### Exemplo: Obter Token
+
+```bash
+curl -X POST "https://auth.laudos.ai/oauth/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=authorization_code" \
+  -d "code=AUTH_CODE_HERE" \
+  -d "client_id=YOUR_CLIENT_ID" \
+  -d "client_secret=YOUR_CLIENT_SECRET" \
+  -d "redirect_uri=https://your-app.com/callback"
+```
+
+### Resposta
+
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "rt_xxxxxxxxxxxxxxxx",
+  "scope": "read:reports write:reports"
+}
+```
+
+## Escopos Disponíveis
+
+| Escopo | Descrição |
+|--------|-----------|
+| `read:reports` | Ler laudos |
+| `write:reports` | Criar e editar laudos |
+| `read:connections` | Listar conexões PACS |
+| `write:connections` | Gerenciar conexões PACS |
+| `read:templates` | Acessar templates |
+| `admin` | Acesso administrativo completo |
+
+## Respostas de Erro
+
+```json
+{
+  "error": "unauthorized",
+  "message": "Token inválido ou expirado",
+  "code": 401
+}
+```
+
+| Código | Significado |
+|--------|-------------|
+| 401 | Não autenticado |
+| 403 | Sem permissão para recurso |
+| 429 | Rate limit excedido |
+
+## Boas Práticas
+
+<AccordionGroup>
+  <Accordion title="Armazene chaves com segurança">
+    Use variáveis de ambiente ou secrets managers (AWS Secrets Manager, HashiCorp Vault).
+  </Accordion>
+  <Accordion title="Rotacione chaves periodicamente">
+    Recomendamos rotação a cada 90 dias para chaves de produção.
+  </Accordion>
+  <Accordion title="Use escopos mínimos">
+    Solicite apenas os escopos necessários para sua integração.
+  </Accordion>
+</AccordionGroup>
