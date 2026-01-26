@@ -1,56 +1,110 @@
 ---
 title: 'API para Desenvolvedores'
-description: 'Integre o Laudos.AI com seus sistemas PACS, RIS e EHR'
+description: 'Integre o Laudos.AI com PACS, RIS e sistemas hospitalares em minutos'
 icon: 'code'
 ---
 
-# Integração para Desenvolvedores
+# Bem-vindo à API do Laudos.AI
 
-O Laudos.AI oferece APIs robustas para integração com sistemas hospitalares, permitindo automatizar fluxos de trabalho radiológicos.
+<Note>
+  **Feito para hospitais brasileiros.** Suporte nativo a Carestream, MV Soul, Tasy, Pixeon e todos os principais sistemas do mercado.
+</Note>
+
+## Por que integrar?
+
+<CardGroup cols={2}>
+  <Card title="Elimine digitação dupla" icon="keyboard">
+    O radiologista escreve uma vez no Laudos.AI e o laudo vai direto pro PACS/RIS
+  </Card>
+  <Card title="Setup em 5 minutos" icon="clock">
+    Presets prontos para os principais sistemas brasileiros
+  </Card>
+  <Card title="Zero PHI armazenado" icon="shield-check">
+    Apenas credenciais de conexão - nenhum dado de paciente passa pelos nossos servidores
+  </Card>
+  <Card title="Protocolos padrão" icon="plug">
+    HL7 v2.x, DICOMweb STOW-RS, FHIR R4 - sem APIs proprietárias
+  </Card>
+</CardGroup>
+
+## Como funciona
+
+```mermaid
+sequenceDiagram
+    participant Rad as Radiologista
+    participant LA as Laudos.AI
+    participant PACS as Seu PACS/RIS
+
+    Rad->>LA: Escreve laudo no editor
+    Rad->>LA: Clica "Enviar ao PACS"
+    LA->>PACS: HL7 ORU^R01 ou STOW-RS
+    PACS->>PACS: Laudo aparece no editor do PACS
+    PACS-->>LA: Confirmação (ACK)
+    LA-->>Rad: "Laudo enviado!"
+```
+
+## Sistemas Suportados
+
+### Brasil (HL7 ORU^R01 via MLLP)
+
+| Sistema | Protocolo | Porta Padrão |
+|---------|-----------|--------------|
+| **Carestream Vue** | HL7 v2.5 | 2575 |
+| **MV Soul / VIVACE** | HL7 v2.5 | 2575 |
+| **Tasy (Philips)** | HL7 v2.5 | 2575 |
+| **Pixeon** | HL7 + DICOMweb | 2575 / 8042 |
+| **MV 2000** | HL7 v2.5 | 2575 |
+| **Wareline** | HL7 v2.5 | 2575 |
+
+### Internacional (DICOMweb STOW-RS)
+
+| Sistema | Protocolo | Porta Padrão |
+|---------|-----------|--------------|
+| **Philips IntelliSpace** | STOW-RS + TLS | 443 |
+| **Siemens syngo.via** | STOW-RS + TLS | 443 |
+| **GE Centricity** | STOW-RS | 8042 |
+| **Fujifilm Synapse** | STOW-RS + TLS | 443 |
+| **Agfa Enterprise** | STOW-RS | 8042 |
+| **Orthanc** | STOW-RS | 8042 |
+| **dcm4chee** | STOW-RS | 8080 |
+
+## Início Rápido
+
+<Steps>
+  <Step title="Configure a conexão">
+    Vá em **Configurações → Integrações → PACS** e adicione seu servidor
+  </Step>
+  <Step title="Teste a conexão">
+    Clique em "Testar" para verificar conectividade
+  </Step>
+  <Step title="Envie um laudo">
+    No editor, clique em **"Enviar ao PACS"** após finalizar o laudo
+  </Step>
+</Steps>
+
+## Integrações Disponíveis
 
 <CardGroup cols={2}>
   <Card title="PACS/RIS" icon="server" href="/developers/integracao-pacs">
-    Integração com sistemas PACS e RIS via DICOMweb e HL7
+    Envie laudos diretamente para o editor do PACS via HL7 ou DICOMweb
   </Card>
-  <Card title="Autenticação" icon="key" href="/developers/autenticacao-api">
-    Autenticação via API Keys e OAuth 2.0
+  <Card title="API REST" icon="code" href="/developers/autenticacao-api">
+    Acesse laudos, templates e configurações via API
   </Card>
   <Card title="Webhooks" icon="webhook" href="/developers/webhooks">
-    Receba notificações em tempo real
+    Receba notificações em tempo real (laudo finalizado, achado crítico, etc.)
   </Card>
-  <Card title="SDK" icon="cube" href="/developers/sdk">
+  <Card title="SDKs" icon="cube" href="/developers/sdk">
     Bibliotecas oficiais para Node.js e Python
   </Card>
 </CardGroup>
 
-## Visão Geral
-
-```mermaid
-flowchart LR
-    PACS[PACS/RIS] -->|DICOMweb/HL7| API[Laudos.AI API]
-    API -->|Webhook| HIS[Sistema Hospitalar]
-    API -->|REST| App[Sua Aplicação]
-```
-
-## Protocolos Suportados
-
-| Protocolo | Versão | Uso Principal |
-|-----------|--------|---------------|
-| DICOMweb | STOW-RS | Envio de laudos estruturados (SR) |
-| HL7 | v2.5.1 | Mensagens ORU^R01 para PACS legados |
-| FHIR | R4 | Integração com EHR modernos |
-| REST | JSON | API geral para aplicações |
-
 ## Ambientes
 
-| Ambiente | Base URL |
-|----------|----------|
-| Produção | `https://api.laudos.ai/v1` |
-| Sandbox | `https://sandbox.api.laudos.ai/v1` |
-
-<Note>
-  Para acesso à API, entre em contato com nossa equipe de integrações em [integracoes@laudos.ai](mailto:integracoes@laudos.ai)
-</Note>
+| Ambiente | Base URL | Uso |
+|----------|----------|-----|
+| **Produção** | `https://api.laudos.ai/v1` | Dados reais |
+| **Sandbox** | `https://sandbox.api.laudos.ai/v1` | Testes |
 
 ## Rate Limits
 
@@ -60,19 +114,13 @@ flowchart LR
 | Enterprise | 300 | 100.000 |
 | Unlimited | Sem limite | Sem limite |
 
-## Próximos Passos
+## Precisa de ajuda?
 
-<Steps>
-  <Step title="Solicitar Acesso">
-    Entre em contato para receber suas credenciais de API
-  </Step>
-  <Step title="Configurar Ambiente">
-    Configure seu ambiente de desenvolvimento com nossas SDKs
-  </Step>
-  <Step title="Testar Integração">
-    Use o ambiente sandbox para validar sua integração
-  </Step>
-  <Step title="Ir para Produção">
-    Após validação, migre para o ambiente de produção
-  </Step>
-</Steps>
+<CardGroup cols={2}>
+  <Card title="Documentação Técnica" icon="book" href="/developers/integracao-pacs">
+    Guias detalhados de integração
+  </Card>
+  <Card title="Suporte" icon="headset" href="mailto:integracoes@laudos.ai">
+    integracoes@laudos.ai
+  </Card>
+</CardGroup>

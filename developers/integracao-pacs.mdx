@@ -1,109 +1,129 @@
 ---
 title: 'Integração PACS/RIS'
-description: 'Conecte o Laudos.AI ao seu PACS ou RIS'
+description: 'Envie laudos do Laudos.AI direto para o editor do seu PACS'
 icon: 'server'
 ---
 
 # Integração com PACS/RIS
 
-O Laudos.AI suporta integração bidirecional com sistemas PACS e RIS, permitindo envio automático de laudos estruturados.
+O Laudos.AI envia laudos estruturados diretamente para o editor do seu PACS. O radiologista só precisa revisar e assinar.
 
-## Sistemas Suportados
+<Note>
+  **One-way push.** O Laudos.AI apenas ENVIA laudos. Nenhum dado de paciente é consultado ou armazenado.
+</Note>
 
-<CardGroup cols={3}>
-  <Card title="Orthanc" icon="cube">
-    DICOMweb nativo
-  </Card>
-  <Card title="DCM4CHEE" icon="cube">
-    STOW-RS / WADO
-  </Card>
-  <Card title="Carestream" icon="cube">
-    HL7 v2.x
-  </Card>
-  <Card title="MV Soul" icon="cube">
-    HL7 / DICOMweb
-  </Card>
-  <Card title="Tasy/Philips" icon="cube">
-    HL7 v2.5
-  </Card>
-  <Card title="Pixeon" icon="cube">
-    REST / HL7
-  </Card>
-</CardGroup>
+## Fluxo de Integração
 
-## Protocolos
+```mermaid
+sequenceDiagram
+    participant Rad as Radiologista
+    participant LA as Laudos.AI
+    participant PACS as PACS/RIS
 
-### DICOMweb (STOW-RS)
+    Rad->>LA: Finaliza laudo no editor
+    Rad->>LA: Clica "Enviar ao PACS"
 
-Protocolo moderno baseado em REST para envio de objetos DICOM.
+    alt Sistema Brasileiro (HL7)
+        LA->>PACS: HL7 ORU^R01 via MLLP (TCP 2575)
+        Note over PACS: Laudo aparece como PRELIMINAR
+        PACS-->>LA: ACK (AA = aceito)
+    else Sistema Internacional (DICOMweb)
+        LA->>PACS: STOW-RS (DICOM SR)
+        Note over PACS: Laudo vinculado ao estudo
+        PACS-->>LA: HTTP 200 + SOP Instance UID
+    end
 
-```bash
-POST /api/v1/pacs/connections/{id}/send
-Content-Type: application/json
-
-{
-  "study_instance_uid": "1.2.840.113619.2.xxx",
-  "report_text": "TÉCNICA: RM de crânio...",
-  "accession_number": "ACC12345",
-  "modality": "MR"
-}
+    LA-->>Rad: "Laudo enviado com sucesso!"
+    Rad->>PACS: Revisa e assina no PACS
 ```
 
-#### Resposta de Sucesso
+## Configuração por Sistema
 
+### Carestream Vue (Brasil)
+
+```bash
+Host: IP do servidor Carestream
+Porta HL7: 2575
+AE Title: CARESTREAM (ou conforme configurado)
+Protocolo: HL7 ORU^R01
+```
+
+<Accordion title="Mensagem HL7 enviada">
+```
+MSH|^~\&|LAUDOSAI|LAUDOSAI|CARESTREAM|HOSPITAL|20240115103000||ORU^R01^ORU_R01|MSG001|P|2.5.1
+PID|1||PAT001||Silva^João||19800515|M
+OBR|1|ACC12345||RAD^TC Tórax^L|||||||||||||||||P|||||||Souza^Dr. Carlos
+OBX|1|TX|RAD^Radiology Report^L||TÉCNICA: TC de tórax sem contraste...||||||P
+OBX|2|TX|RAD^Radiology Report^L||ANÁLISE: Parênquima pulmonar de aspecto normal...||||||P
+OBX|3|TX|RAD^Radiology Report^L||CONCLUSÃO: Exame dentro dos limites da normalidade.||||||P
+```
+</Accordion>
+
+### MV Soul / VIVACE (Brasil)
+
+```bash
+Host: IP do servidor MV
+Porta HL7: 2575
+AE Title: MVSOUL
+Protocolo: HL7 ORU^R01
+```
+
+### Tasy (Philips Brasil)
+
+```bash
+Host: IP do servidor Tasy
+Porta HL7: 2575
+AE Title: TASY
+Protocolo: HL7 ORU^R01
+```
+
+### Orthanc (Open Source)
+
+```bash
+Host: IP do Orthanc
+Porta DICOMweb: 8042
+DICOMweb URL: /dicom-web
+AE Title: ORTHANC
+Protocolo: STOW-RS
+```
+
+<Accordion title="DICOM SR JSON enviado">
 ```json
 {
-  "success": true,
-  "message": "Laudo enviado ao PACS",
-  "protocol": "dicomweb",
-  "sop_instance_uid": "1.2.840.xxx.xxx"
+  "00080016": {"vr": "UI", "Value": ["1.2.840.10008.5.1.4.1.1.88.11"]},
+  "00080018": {"vr": "UI", "Value": ["2.25.xxxxx"]},
+  "0020000D": {"vr": "UI", "Value": ["1.2.840.xxxxx"]},
+  "00080060": {"vr": "CS", "Value": ["SR"]},
+  "0040A040": {"vr": "CS", "Value": ["CONTAINER"]},
+  "0040A730": {
+    "vr": "SQ",
+    "Value": [{
+      "0040A040": {"vr": "CS", "Value": ["TEXT"]},
+      "0040A160": {"vr": "UT", "Value": ["TÉCNICA: TC de tórax..."]}
+    }]
+  },
+  "0040A491": {"vr": "CS", "Value": ["PARTIAL"]},
+  "0040A493": {"vr": "CS", "Value": ["UNVERIFIED"]}
 }
 ```
+</Accordion>
 
-### HL7 v2.x (ORU^R01)
+## API de Envio
 
-Para sistemas legados que utilizam HL7 via MLLP.
-
-```bash
-POST /api/v1/pacs/connections/{id}/send
-Content-Type: application/json
-
-{
-  "protocol": "hl7",
-  "accession_number": "ACC12345",
-  "report_text": "TÉCNICA: TC de tórax...",
-  "patient_id": "PAT001",
-  "reporting_radiologist": "Dr. Silva"
-}
-```
-
-#### Estrutura da Mensagem HL7
-
-```
-MSH|^~\&|LAUDOSAI|LAUDOSAI|PACS|HOSPITAL|...|ORU^R01^ORU_R01|...|P|2.5.1
-PID|1||PAT001||Silva^João||...
-OBR|1|ACC12345||RAD^Radiology Report^L|...
-OBX|1|TX|RAD^Radiology Report^L||TÉCNICA: TC de tórax...||||||P
-```
-
-## Configurar Conexão
-
-### Via API
+### Criar Conexão PACS
 
 ```bash
 POST /api/v1/pacs/connections
 Authorization: Bearer sk_live_xxx
+Content-Type: application/json
 
 {
-  "name": "PACS Principal",
-  "type": "orthanc",
-  "host": "pacs.hospital.com",
-  "port": 8042,
-  "ae_title": "ORTHANC",
-  "dicomweb_url": "https://pacs.hospital.com/dicom-web",
-  "auth_type": "basic",
-  "username": "laudosai",
-  "password": "secure_password"
+  "name": "PACS Hospital Central",
+  "type": "carestream",
+  "host": "192.168.1.100",
+  "hl7_port": 2575,
+  "ae_title": "CARESTREAM",
+  "auth_type": "none"
 }
 ```
 
@@ -116,79 +136,90 @@ POST /api/v1/pacs/connections/{id}/test
 {
   "success": true,
   "message": "Conexão estabelecida",
-  "latency_ms": 45,
-  "server_info": {
-    "server": "Orthanc/1.12.0"
-  }
+  "protocol": "hl7",
+  "latency_ms": 45
 }
 ```
 
-## Fluxo de Integração
+### Enviar Laudo
 
-```mermaid
-sequenceDiagram
-    participant Rad as Radiologista
-    participant LA as Laudos.AI
-    participant PACS as PACS/RIS
+```bash
+POST /api/v1/pacs/connections/{id}/send
+Authorization: Bearer sk_live_xxx
+Content-Type: application/json
 
-    Rad->>LA: Finaliza laudo
-    LA->>LA: Gera DICOM SR
-    LA->>PACS: STOW-RS / HL7 ORU
-    PACS->>PACS: Vincula ao estudo
-    PACS-->>LA: ACK / Confirmação
-    LA-->>Rad: Laudo enviado
+{
+  "accession_number": "ACC12345",
+  "report_text": "TÉCNICA: TC de tórax sem contraste.\n\nANÁLISE: Parênquima pulmonar...\n\nCONCLUSÃO: Exame normal.",
+  "patient_id": "PAT001",
+  "patient_name": "João Silva",
+  "reporting_radiologist": "Dr. Carlos Souza"
+}
+```
+
+### Resposta de Sucesso
+
+```json
+{
+  "success": true,
+  "message": "Laudo enviado ao PACS",
+  "protocol": "hl7",
+  "ack_code": "AA"
+}
 ```
 
 ## Status do Laudo
 
-| Status | Código DICOM | Descrição |
-|--------|--------------|-----------|
+O laudo é sempre enviado como **PRELIMINAR** para que o radiologista revise e assine no PACS.
+
+| Status DICOM | Código | Significado |
+|--------------|--------|-------------|
 | Preliminar | P | Aguardando revisão |
-| Final | F | Laudo finalizado |
+| Final | F | Assinado pelo médico |
 | Corrigido | C | Correção de laudo anterior |
-| Cancelado | X | Laudo cancelado |
-
-## Tratamento de Erros
-
-```json
-{
-  "success": false,
-  "error": "CONNECTION_TIMEOUT",
-  "message": "Timeout ao conectar ao PACS",
-  "details": "Host pacs.hospital.com não respondeu em 30s"
-}
-```
-
-| Código | Causa | Ação |
-|--------|-------|------|
-| `CONNECTION_TIMEOUT` | PACS não responde | Verificar firewall/rede |
-| `AUTH_FAILED` | Credenciais inválidas | Verificar username/password |
-| `STOW_REJECTED` | PACS rejeitou SR | Verificar formato DICOM |
-| `HL7_NACK` | PACS rejeitou HL7 | Verificar estrutura mensagem |
 
 ## Requisitos de Rede
 
 <Warning>
-  Configure seu firewall para permitir conexões do Laudos.AI.
+  Configure seu firewall para permitir conexões de saída do Laudos.AI.
 </Warning>
 
 | Direção | Porta | Protocolo | Uso |
 |---------|-------|-----------|-----|
-| Saída | 443 | HTTPS | DICOMweb |
-| Saída | 104 | DICOM | C-STORE (legado) |
-| Saída | 2575 | TCP | HL7 MLLP |
+| **Saída** | 2575 | TCP | HL7 MLLP |
+| **Saída** | 8042 | HTTPS | DICOMweb |
+| **Saída** | 443 | HTTPS | DICOMweb TLS |
+| **Saída** | 104 | DICOM | C-STORE (legado) |
 
-### IPs do Laudos.AI
+## Tratamento de Erros
 
-```
-Produção:
-  - 34.95.xxx.xxx
-  - 35.198.xxx.xxx
+| Código | Erro | Solução |
+|--------|------|---------|
+| `CONNECTION_TIMEOUT` | Servidor não respondeu | Verificar firewall e porta |
+| `AUTH_FAILED` | Autenticação falhou | Verificar credenciais |
+| `HL7_NACK` | Mensagem rejeitada | Verificar formato do laudo |
+| `STOW_REJECTED` | PACS rejeitou SR | Verificar Study Instance UID |
 
-Sandbox:
-  - 34.95.xxx.xxx
-```
+## FAQ
 
-<Note>
-  Para IPs atualizados, consulte [status.laudos.ai/ips](https://status.laudos.ai/ips)
-</Note>
+<AccordionGroup>
+  <Accordion title="O laudo substitui o que está no PACS?">
+    Não. O laudo é enviado como PRELIMINAR e adiciona uma nova série ao estudo. O radiologista deve revisar e finalizar no PACS.
+  </Accordion>
+  <Accordion title="Preciso do Study Instance UID?">
+    Para HL7 (sistemas brasileiros), apenas o Número de Acesso é necessário. Para DICOMweb, o Study Instance UID é requerido.
+  </Accordion>
+  <Accordion title="Funciona com VPN?">
+    Sim. Configure a VPN para permitir tráfego nas portas 2575 (HL7) ou 8042/443 (DICOMweb).
+  </Accordion>
+  <Accordion title="Suporta TLS/SSL?">
+    Sim. Marque "Usar TLS" na configuração para conexões criptografadas.
+  </Accordion>
+</AccordionGroup>
+
+## Precisa de ajuda?
+
+Entre em contato com nossa equipe de integrações:
+
+- **Email:** [integracoes@laudos.ai](mailto:integracoes@laudos.ai)
+- **WhatsApp:** [Suporte Técnico](https://wa.me/5511999999999)
