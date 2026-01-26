@@ -1,0 +1,215 @@
+---
+title: 'Reports API'
+description: 'Endpoints para gerenciar laudos radiologicos'
+icon: 'file-medical'
+---
+
+# Reports API
+
+CRUD completo para laudos radiologicos com suporte a campos HL7/DICOM.
+
+## Base URL
+
+```
+https://copilot.laudos.ai/api/v1
+```
+
+---
+
+## Listar Laudos
+
+<ParamField path="GET" method="/reports">
+  Lista todos os laudos do usuario autenticado.
+</ParamField>
+
+### Query Parameters
+
+| Parametro | Tipo | Descricao |
+|-----------|------|-----------|
+| `limit` | number | Maximo de resultados (1-100, padrao: 50) |
+| `offset` | number | Offset para paginacao |
+| `sort` | string | Ordenacao: `asc` ou `desc` (padrao) |
+| `exam_type` | string | Filtrar por tipo de exame (CT, MR, US, etc.) |
+| `search` | string | Busca por titulo ou conteudo |
+
+### Exemplo
+
+```bash
+curl -X GET "https://copilot.laudos.ai/api/v1/reports?limit=10&exam_type=CT" \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+### Resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "title": "TC de Torax",
+      "content": "<h1>LAUDO</h1>...",
+      "exam_type": "CT",
+      "created_at": "2026-01-26T12:00:00Z",
+      "updated_at": "2026-01-26T12:30:00Z",
+      "accession_number": "12345",
+      "study_instance_uid": "1.2.3.4.5",
+      "modality": "CT",
+      "tags": ["torax", "normal"]
+    }
+  ],
+  "meta": {
+    "total": 150,
+    "limit": 10,
+    "offset": 0,
+    "has_more": true
+  }
+}
+```
+
+---
+
+## Obter Laudo
+
+<ParamField path="GET" method="/reports/{id}">
+  Retorna um laudo especifico pelo ID ou hash_id.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X GET "https://copilot.laudos.ai/api/v1/reports/uuid" \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+### Resposta
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "title": "TC de Torax",
+    "content": "<h1>LAUDO</h1>...",
+    "exam_type": "CT",
+    "created_at": "2026-01-26T12:00:00Z",
+    "updated_at": "2026-01-26T12:30:00Z",
+    "accession_number": "12345",
+    "study_instance_uid": "1.2.3.4.5",
+    "modality": "CT",
+    "referring_physician": "Dr. Silva",
+    "performing_physician": "Dr. Costa",
+    "study_description": "TC Torax sem contraste",
+    "tags": ["torax", "normal"]
+  }
+}
+```
+
+---
+
+## Criar Laudo
+
+<ParamField path="POST" method="/reports">
+  Cria um novo laudo.
+</ParamField>
+
+### Body Parameters
+
+| Campo | Tipo | Obrigatorio | Descricao |
+|-------|------|-------------|-----------|
+| `title` | string | Sim | Titulo do laudo |
+| `content` | string | Sim | Conteudo HTML do laudo |
+| `exam_type` | string | Nao | Tipo de exame (CT, MR, US, XR, etc.) |
+| `accession_number` | string | Nao | Numero de acesso HL7/DICOM |
+| `study_instance_uid` | string | Nao | Study Instance UID DICOM |
+| `modality` | string | Nao | Modalidade (CT, MR, US, etc.) |
+| `referring_physician` | string | Nao | Medico solicitante |
+| `performing_physician` | string | Nao | Medico executante |
+| `study_description` | string | Nao | Descricao do estudo |
+| `tags` | string[] | Nao | Tags para organizacao |
+
+### Exemplo
+
+```bash
+curl -X POST "https://copilot.laudos.ai/api/v1/reports" \
+  -H "Authorization: Bearer sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "TC de Torax",
+    "content": "<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>",
+    "exam_type": "CT",
+    "accession_number": "12345",
+    "modality": "CT",
+    "referring_physician": "Dr. Silva"
+  }'
+```
+
+### Resposta
+
+```json
+{
+  "data": {
+    "id": "new-uuid",
+    "title": "TC de Torax",
+    "content": "<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>",
+    "exam_type": "CT",
+    "created_at": "2026-01-26T12:00:00Z"
+  }
+}
+```
+
+---
+
+## Atualizar Laudo
+
+<ParamField path="PUT" method="/reports/{id}">
+  Atualiza um laudo existente.
+</ParamField>
+
+### Body Parameters
+
+Mesmos campos do POST, todos opcionais.
+
+### Exemplo
+
+```bash
+curl -X PUT "https://copilot.laudos.ai/api/v1/reports/uuid" \
+  -H "Authorization: Bearer sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "TC de Torax - Atualizado",
+    "accession_number": "67890"
+  }'
+```
+
+---
+
+## Excluir Laudo
+
+<ParamField path="DELETE" method="/reports/{id}">
+  Exclui um laudo permanentemente.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X DELETE "https://copilot.laudos.ai/api/v1/reports/uuid" \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+### Resposta
+
+```
+HTTP/1.1 204 No Content
+```
+
+---
+
+## Codigos de Erro
+
+| Codigo | Descricao |
+|--------|-----------|
+| 400 | Requisicao invalida |
+| 401 | Nao autenticado |
+| 403 | Sem permissao |
+| 404 | Laudo nao encontrado |
+| 429 | Rate limit excedido |
+| 500 | Erro interno |

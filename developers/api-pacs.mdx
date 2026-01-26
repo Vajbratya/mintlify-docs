@@ -1,0 +1,241 @@
+---
+title: 'PACS API'
+description: 'Envie laudos para PACS/RIS via HL7 ou DICOMweb'
+icon: 'server'
+---
+
+# PACS API
+
+Endpoints para enviar laudos diretamente ao PACS/RIS hospitalar.
+
+## Base URL
+
+```
+https://copilot.laudos.ai/api/v1
+```
+
+---
+
+## Listar Conexoes
+
+<ParamField path="GET" method="/pacs/connections">
+  Lista todas as conexoes PACS configuradas.
+</ParamField>
+
+### Query Parameters
+
+| Parametro | Tipo | Descricao |
+|-----------|------|-----------|
+| `active_only` | boolean | Filtrar apenas conexoes ativas |
+
+### Exemplo
+
+```bash
+curl -X GET "https://copilot.laudos.ai/api/v1/pacs/connections?active_only=true" \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+### Resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "conn-uuid",
+      "name": "PACS Hospital Central",
+      "type": "carestream",
+      "host": "192.168.1.100",
+      "port": 2575,
+      "status": "connected",
+      "protocol": "hl7",
+      "last_connected": "2026-01-26T12:00:00Z"
+    }
+  ],
+  "meta": {
+    "total": 3
+  }
+}
+```
+
+---
+
+## Enviar Laudo ao PACS
+
+<ParamField path="POST" method="/pacs/send">
+  Envia um laudo para o PACS via HL7 ORU^R01, DICOMweb STOW-RS ou MV Soul XML.
+</ParamField>
+
+### Body Parameters
+
+| Campo | Tipo | Obrigatorio | Descricao |
+|-------|------|-------------|-----------|
+| `connection_id` | string | Sim | ID da conexao PACS |
+| `report_text` | string | Sim | Conteudo do laudo (HTML) |
+| `accession_number` | string | Sim* | Numero de acesso |
+| `study_instance_uid` | string | Sim* | Study Instance UID |
+| `report_status` | string | Nao | `preliminary`, `final` ou `corrected` |
+| `patient_id` | string | Nao | ID do paciente |
+| `patient_name` | string | Nao | Nome do paciente (Sobrenome, Nome) |
+| `patient_dob` | string | Nao | Data de nascimento (YYYY-MM-DD) |
+| `patient_gender` | string | Nao | Genero (M/F/O) |
+| `modality` | string | Nao | Modalidade (CT, MR, US, etc.) |
+| `study_description` | string | Nao | Descricao do estudo |
+| `study_date` | string | Nao | Data do estudo (ISO 8601) |
+| `attending_doctor` | string | Nao | Medico assistente (PV1-7) |
+| `ordering_provider` | string | Nao | Medico solicitante (OBR-16) |
+| `reporting_radiologist` | string | Nao | Radiologista (OBX-16) |
+| `procedure_code` | string | Nao | Codigo do procedimento |
+| `procedure_description` | string | Nao | Descricao do procedimento |
+| `protocol` | string | Nao | Protocolo: `auto`, `hl7`, `dicomweb` ou `mvsoul` |
+
+<Note>
+  Pelo menos um dos campos `accession_number` ou `study_instance_uid` e obrigatorio.
+</Note>
+
+### Exemplo HL7
+
+```bash
+curl -X POST "https://copilot.laudos.ai/api/v1/pacs/send" \
+  -H "Authorization: Bearer sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "connection_id": "conn-uuid",
+    "report_text": "<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>",
+    "report_status": "final",
+    "accession_number": "12345",
+    "patient_id": "PAT001",
+    "patient_name": "Silva, Joao",
+    "patient_dob": "1958-03-15",
+    "patient_gender": "M",
+    "modality": "CT",
+    "study_description": "TC de Torax",
+    "attending_doctor": "Dr. Paulo Lima",
+    "ordering_provider": "Dr. Maria Costa",
+    "reporting_radiologist": "Dr. Carlos Santos",
+    "procedure_code": "CT001",
+    "procedure_description": "TC de Torax sem contraste"
+  }'
+```
+
+### Resposta Sucesso
+
+```json
+{
+  "success": true,
+  "message": "Laudo enviado via HL7 (ACK: AA)",
+  "protocol": "hl7",
+  "duration_ms": 1500
+}
+```
+
+### Resposta Erro
+
+```json
+{
+  "success": false,
+  "error": "pacs_error",
+  "message": "Conexao recusada",
+  "details": "Connection refused: 192.168.1.100:2575",
+  "protocol": "hl7"
+}
+```
+
+---
+
+## Campos HL7 Suportados
+
+O endpoint `/pacs/send` suporta os seguintes campos HL7 v2.5.1:
+
+### Segmento PID (Patient Identification)
+
+| Campo | HL7 | Parametro |
+|-------|-----|-----------|
+| Patient ID | PID-3 | `patient_id` |
+| Patient Name | PID-5 | `patient_name` |
+| Date of Birth | PID-7 | `patient_dob` |
+| Gender | PID-8 | `patient_gender` |
+
+### Segmento PV1 (Patient Visit)
+
+| Campo | HL7 | Parametro |
+|-------|-----|-----------|
+| Attending Doctor | PV1-7 | `attending_doctor` |
+
+### Segmento OBR (Observation Request)
+
+| Campo | HL7 | Parametro |
+|-------|-----|-----------|
+| Placer Order Number | OBR-2 | `accession_number` |
+| Ordering Provider | OBR-16 | `ordering_provider` |
+| Accession Number | OBR-18 | `accession_number` |
+
+### Segmento OBX (Observation Result)
+
+| Campo | HL7 | Parametro |
+|-------|-----|-----------|
+| Observation Value | OBX-5 | `report_text` |
+| Result Status | OBX-11 | `report_status` |
+| Responsible Observer | OBX-16 | `reporting_radiologist` |
+
+---
+
+## Protocolos Suportados
+
+### HL7 ORU^R01 via MLLP
+
+Para sistemas brasileiros: Carestream, MV Soul, Tasy, Pixeon, MV 2000, Wareline.
+
+```json
+{
+  "protocol": "hl7"
+}
+```
+
+### DICOMweb STOW-RS
+
+Para sistemas internacionais: Philips, Siemens, GE, Fujifilm, Agfa, Orthanc, dcm4chee.
+
+```json
+{
+  "protocol": "dicomweb"
+}
+```
+
+### MV Soul XML API
+
+Especifico para MV Soul/VIVACE com API XML.
+
+```json
+{
+  "protocol": "mvsoul"
+}
+```
+
+### Auto-detect
+
+O sistema detecta automaticamente o melhor protocolo baseado na configuracao da conexao.
+
+```json
+{
+  "protocol": "auto"
+}
+```
+
+---
+
+## Timeout
+
+O envio para PACS pode levar ate 2 minutos (conexoes lentas). O endpoint possui timeout de 120 segundos.
+
+---
+
+## Codigos de Erro
+
+| Codigo | Descricao |
+|--------|-----------|
+| 400 | Campos obrigatorios ausentes |
+| 401 | Nao autenticado |
+| 403 | Sem permissao para PACS |
+| 404 | Conexao PACS nao encontrada |
+| 500 | Erro no envio ao PACS |
+| 504 | Timeout de conexao |

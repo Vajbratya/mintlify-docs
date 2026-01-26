@@ -1,0 +1,156 @@
+---
+title: 'Templates API'
+description: 'Endpoints para gerenciar templates de laudos'
+icon: 'file-lines'
+---
+
+# Templates API
+
+CRUD completo para templates de laudos com suporte a comandos de voz.
+
+## Base URL
+
+```
+https://copilot.laudos.ai/api/v1
+```
+
+---
+
+## Listar Templates
+
+<ParamField path="GET" method="/templates">
+  Lista todos os templates do usuario.
+</ParamField>
+
+### Query Parameters
+
+| Parametro | Tipo | Descricao |
+|-----------|------|-----------|
+| `limit` | number | Maximo de resultados (1-100, padrao: 50) |
+| `offset` | number | Offset para paginacao |
+| `exam_type` | string | Filtrar por tipo de exame |
+| `category` | string | Filtrar por categoria |
+| `search` | string | Busca por nome |
+
+### Exemplo
+
+```bash
+curl -X GET "https://copilot.laudos.ai/api/v1/templates?exam_type=CT" \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+### Resposta
+
+```json
+{
+  "data": [
+    {
+      "id": "uuid",
+      "name": "TC Torax Normal",
+      "content": "<h1>LAUDO</h1><p>Exame normal...</p>",
+      "exam_type": "CT",
+      "category": "torax",
+      "voice_command": "TC TORAX NORMAL",
+      "usage_count": 150,
+      "created_at": "2026-01-01T00:00:00Z"
+    }
+  ],
+  "meta": {
+    "total": 25,
+    "limit": 50,
+    "offset": 0,
+    "has_more": false
+  }
+}
+```
+
+---
+
+## Obter Template
+
+<ParamField path="GET" method="/templates/{id}">
+  Retorna um template especifico.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X GET "https://copilot.laudos.ai/api/v1/templates/uuid" \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+---
+
+## Criar Template
+
+<ParamField path="POST" method="/templates">
+  Cria um novo template.
+</ParamField>
+
+### Body Parameters
+
+| Campo | Tipo | Obrigatorio | Descricao |
+|-------|------|-------------|-----------|
+| `name` | string | Sim | Nome do template |
+| `content` | string | Sim | Conteudo HTML |
+| `exam_type` | string | Nao | Tipo de exame |
+| `category` | string | Nao | Categoria |
+| `tags` | string[] | Nao | Tags |
+| `voice_command` | string | Nao | Comando de voz para ativar |
+| `is_public` | boolean | Nao | Template publico |
+
+### Exemplo
+
+```bash
+curl -X POST "https://copilot.laudos.ai/api/v1/templates" \
+  -H "Authorization: Bearer sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "TC Torax Normal",
+    "content": "<h1>LAUDO RADIOLOGICO</h1><p>Exame dentro dos limites da normalidade.</p>",
+    "exam_type": "CT",
+    "category": "torax",
+    "voice_command": "TC TORAX NORMAL"
+  }'
+```
+
+---
+
+## Atualizar Template
+
+<ParamField path="PUT" method="/templates/{id}">
+  Atualiza um template existente.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X PUT "https://copilot.laudos.ai/api/v1/templates/uuid" \
+  -H "Authorization: Bearer sk_live_xxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "TC Torax Normal - v2",
+    "is_favorite": true
+  }'
+```
+
+---
+
+## Excluir Template
+
+<ParamField path="DELETE" method="/templates/{id}">
+  Exclui um template permanentemente.
+</ParamField>
+
+### Exemplo
+
+```bash
+curl -X DELETE "https://copilot.laudos.ai/api/v1/templates/uuid" \
+  -H "Authorization: Bearer sk_live_xxx"
+```
+
+### Resposta
+
+```
+HTTP/1.1 204 No Content
+```
