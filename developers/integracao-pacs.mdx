@@ -61,12 +61,66 @@ OBX|3|TX|RAD^Radiology Report^L||CONCLUSÃO: Exame dentro dos limites da normali
 
 ### MV Soul / VIVACE (Brasil)
 
-```bash
-Host: IP do servidor MV
-Porta HL7: 2575
-AE Title: MVSOUL
-Protocolo: HL7 ORU^R01
-```
+O MV Soul suporta dois protocolos de integração:
+
+<Tabs>
+  <Tab title="HL7 (Recomendado)">
+    ```bash
+    Host: IP do servidor MV
+    Porta HL7: 2575
+    AE Title: MVSOUL
+    Protocolo: HL7 ORU^R01
+    ```
+
+    <Accordion title="Mensagem HL7 com CRM">
+    ```
+    MSH|^~\&|LAUDOSAI|LAUDOSAI|MVSOUL|MV|20240115103000||ORU^R01^ORU_R01|MSG001|P|2.5.1
+    PID|1||12345678900||Silva Filho^João||19800515|M
+    OBR|1|ACC12345||RAD^RM Crânio^L|||||||||||||||||P|||||||Souza^Carlos^123456^SP
+    OBX|1|TX|RAD^Radiology Report^L||TÉCNICA: RM de crânio...||||||P
+    ```
+    Note que o nome do médico inclui o CRM: `Souza^Carlos^123456^SP`
+    </Accordion>
+  </Tab>
+  <Tab title="XML API">
+    Se seu MV tiver a API XML habilitada:
+
+    ```bash
+    URL da API: https://mv.hospital.com.br/api/laudos
+    Autenticação: Basic ou API Key
+    Content-Type: application/xml
+    ```
+
+    <Accordion title="XML enviado ao MV">
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <MV_LAUDO version="1.0">
+      <HEADER>
+        <SISTEMA_ORIGEM>LAUDOSAI</SISTEMA_ORIGEM>
+        <SISTEMA_DESTINO>MVSOUL</SISTEMA_DESTINO>
+        <TIPO_MENSAGEM>LAUDO</TIPO_MENSAGEM>
+      </HEADER>
+      <EXAME>
+        <NR_ACESSO>ACC12345</NR_ACESSO>
+        <MODALIDADE>CT</MODALIDADE>
+      </EXAME>
+      <LAUDO>
+        <STATUS>P</STATUS>
+        <TEXTO><![CDATA[TÉCNICA: TC de tórax...]]></TEXTO>
+      </LAUDO>
+      <MEDICO>
+        <CRM>123456</CRM>
+        <NM_MEDICO>Dr. Carlos Souza</NM_MEDICO>
+      </MEDICO>
+    </MV_LAUDO>
+    ```
+    </Accordion>
+  </Tab>
+</Tabs>
+
+<Note>
+  **Suporte a CRM.** O Laudos.AI inclui automaticamente o CRM do médico na mensagem HL7/XML para validação no MV Soul.
+</Note>
 
 ### Tasy (Philips Brasil)
 
