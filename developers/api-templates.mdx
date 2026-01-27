@@ -1,43 +1,151 @@
 ---
 title: 'Templates API'
-description: 'Endpoints para gerenciar templates de laudos'
-icon: 'file-lines'
+description: 'Gerencie templates de laudos com comandos de voz e categorias'
+icon: 'copy'
 ---
 
 # Templates API
 
-CRUD completo para templates de laudos com suporte a comandos de voz.
+CRUD completo para templates de laudos radiologicos. Templates permitem padronizar laudos, incluir comandos de voz para ditado, e organizar por categorias e tipos de exame.
 
-## Base URL
+---
 
+## Endpoints
+
+| Metodo | Endpoint | Descricao |
+|--------|----------|-----------|
+| `GET` | `/templates` | Lista todos os templates |
+| `GET` | `/templates/{id}` | Obtem um template especifico |
+| `POST` | `/templates` | Cria um novo template |
+| `PUT` | `/templates/{id}` | Atualiza um template |
+| `DELETE` | `/templates/{id}` | Exclui um template |
+
+---
+
+## Objeto Template
+
+```json
+{
+  "id": "tpl_abc123",
+  "name": "TC Torax Normal",
+  "content": "<h1>LAUDO RADIOLOGICO</h1><h2>TC DE TORAX</h2>...",
+  "content_text": "LAUDO RADIOLOGICO\nTC DE TORAX\n...",
+  "exam_type": "CT",
+  "modality": "CT",
+  "category": "torax",
+  "subcategory": "normal",
+  "tags": ["normal", "rotina", "padrao"],
+  "voice_command": "TC TORAX NORMAL",
+  "voice_aliases": ["TORAX NORMAL", "CT NORMAL TORAX"],
+  "is_favorite": true,
+  "is_public": false,
+  "usage_count": 284,
+  "last_used_at": "2026-01-26T10:30:00Z",
+  "created_by": "usr_xyz789",
+  "created_at": "2025-06-15T08:00:00Z",
+  "updated_at": "2026-01-20T14:22:00Z"
+}
 ```
-https://copilot.laudos.ai/api/v1
-```
+
+### Campos
+
+| Campo | Tipo | Descricao |
+|-------|------|-----------|
+| `id` | string | ID unico do template |
+| `name` | string | Nome do template |
+| `content` | string | Conteudo em HTML |
+| `content_text` | string | Conteudo em texto plano (gerado automaticamente) |
+| `exam_type` | string | Tipo de exame (CT, MR, US, XR, etc.) |
+| `modality` | string | Modalidade DICOM |
+| `category` | string | Categoria (torax, abdome, cranio, etc.) |
+| `subcategory` | string | Subcategoria |
+| `tags` | string[] | Tags para busca |
+| `voice_command` | string | Comando de voz principal |
+| `voice_aliases` | string[] | Aliases adicionais para voz |
+| `is_favorite` | boolean | Marcado como favorito |
+| `is_public` | boolean | Visivel para outros usuarios |
+| `usage_count` | number | Numero de vezes usado |
+| `last_used_at` | string | Ultima utilizacao (ISO 8601) |
 
 ---
 
 ## Listar Templates
 
-<ParamField path="GET" method="/templates">
-  Lista todos os templates do usuario.
-</ParamField>
+Lista todos os templates do usuario autenticado com suporte a filtragem e busca.
+
+```
+GET /templates
+```
 
 ### Query Parameters
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `limit` | number | Maximo de resultados (1-100, padrao: 50) |
-| `offset` | number | Offset para paginacao |
-| `exam_type` | string | Filtrar por tipo de exame |
-| `category` | string | Filtrar por categoria |
-| `search` | string | Busca por nome |
+| Parametro | Tipo | Padrao | Descricao |
+|-----------|------|--------|-----------|
+| `limit` | number | 50 | Maximo de resultados (1-100) |
+| `offset` | number | 0 | Offset para paginacao |
+| `exam_type` | string | - | Filtrar por tipo de exame |
+| `modality` | string | - | Filtrar por modalidade DICOM |
+| `category` | string | - | Filtrar por categoria |
+| `tags` | string | - | Filtrar por tags (separadas por virgula) |
+| `search` | string | - | Busca por nome ou conteudo |
+| `favorites_only` | boolean | false | Apenas favoritos |
+| `sort` | string | `usage_count` | Ordenar: `usage_count`, `name`, `created_at`, `updated_at` |
+| `order` | string | `desc` | Ordem: `asc` ou `desc` |
 
-### Exemplo
+### Exemplos
 
-```bash
-curl -X GET "https://copilot.laudos.ai/api/v1/templates?exam_type=CT" \
+<CodeGroup>
+
+```bash cURL
+curl -X GET "https://copilot.laudos.ai/api/v1/templates?exam_type=CT&category=torax&limit=20" \
   -H "Authorization: Bearer sk_live_xxx"
 ```
+
+```typescript TypeScript SDK
+import { LaudosAI } from '@laudosai/sdk';
+
+const client = new LaudosAI({ apiKey: process.env.LAUDOSAI_API_KEY });
+
+// Listar templates de TC de torax
+const { data: templates, meta } = await client.templates.list({
+  exam_type: 'CT',
+  category: 'torax',
+  limit: 20,
+  sort: 'usage_count',
+  order: 'desc',
+});
+
+console.log(`${meta.total} templates encontrados`);
+for (const tpl of templates) {
+  console.log(`- ${tpl.name} (usado ${tpl.usage_count}x)`);
+}
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://copilot.laudos.ai/api/v1/templates",
+    headers={"Authorization": "Bearer sk_live_xxx"},
+    params={
+        "exam_type": "CT",
+        "category": "torax",
+        "limit": 20,
+        "sort": "usage_count",
+        "order": "desc"
+    }
+)
+
+data = response.json()
+templates = data["data"]
+meta = data["meta"]
+
+print(f"{meta['total']} templates encontrados")
+for tpl in templates:
+    print(f"- {tpl['name']} (usado {tpl['usage_count']}x)")
+```
+
+</CodeGroup>
 
 ### Resposta
 
@@ -45,21 +153,33 @@ curl -X GET "https://copilot.laudos.ai/api/v1/templates?exam_type=CT" \
 {
   "data": [
     {
-      "id": "uuid",
+      "id": "tpl_abc123",
       "name": "TC Torax Normal",
-      "content": "<h1>LAUDO</h1><p>Exame normal...</p>",
+      "content": "<h1>LAUDO RADIOLOGICO</h1>...",
       "exam_type": "CT",
       "category": "torax",
       "voice_command": "TC TORAX NORMAL",
-      "usage_count": 150,
-      "created_at": "2026-01-01T00:00:00Z"
+      "usage_count": 284,
+      "is_favorite": true,
+      "created_at": "2025-06-15T08:00:00Z"
+    },
+    {
+      "id": "tpl_def456",
+      "name": "TC Torax com Nodulo",
+      "content": "<h1>LAUDO RADIOLOGICO</h1>...",
+      "exam_type": "CT",
+      "category": "torax",
+      "voice_command": "TC TORAX NODULO",
+      "usage_count": 156,
+      "is_favorite": false,
+      "created_at": "2025-07-20T10:30:00Z"
     }
   ],
   "meta": {
-    "total": 25,
-    "limit": 50,
+    "total": 45,
+    "limit": 20,
     "offset": 0,
-    "has_more": false
+    "has_more": true
   }
 }
 ```
@@ -68,89 +188,286 @@ curl -X GET "https://copilot.laudos.ai/api/v1/templates?exam_type=CT" \
 
 ## Obter Template
 
-<ParamField path="GET" method="/templates/{id}">
-  Retorna um template especifico.
-</ParamField>
+Retorna um template especifico pelo ID.
 
-### Exemplo
+```
+GET /templates/{id}
+```
 
-```bash
-curl -X GET "https://copilot.laudos.ai/api/v1/templates/uuid" \
+### Exemplos
+
+<CodeGroup>
+
+```bash cURL
+curl -X GET "https://copilot.laudos.ai/api/v1/templates/tpl_abc123" \
   -H "Authorization: Bearer sk_live_xxx"
 ```
+
+```typescript TypeScript SDK
+const { data: template } = await client.templates.get('tpl_abc123');
+
+console.log(`Template: ${template.name}`);
+console.log(`Comando de voz: ${template.voice_command}`);
+console.log(`Conteudo: ${template.content}`);
+```
+
+```python Python
+response = requests.get(
+    "https://copilot.laudos.ai/api/v1/templates/tpl_abc123",
+    headers={"Authorization": "Bearer sk_live_xxx"}
+)
+
+template = response.json()["data"]
+print(f"Template: {template['name']}")
+print(f"Comando de voz: {template['voice_command']}")
+```
+
+</CodeGroup>
 
 ---
 
 ## Criar Template
 
-<ParamField path="POST" method="/templates">
-  Cria um novo template.
-</ParamField>
+Cria um novo template de laudo.
+
+```
+POST /templates
+```
 
 ### Body Parameters
 
 | Campo | Tipo | Obrigatorio | Descricao |
 |-------|------|-------------|-----------|
-| `name` | string | Sim | Nome do template |
-| `content` | string | Sim | Conteudo HTML |
+| `name` | string | Sim | Nome do template (max 100 caracteres) |
+| `content` | string | Sim | Conteudo HTML do template |
 | `exam_type` | string | Nao | Tipo de exame |
+| `modality` | string | Nao | Modalidade DICOM |
 | `category` | string | Nao | Categoria |
-| `tags` | string[] | Nao | Tags |
-| `voice_command` | string | Nao | Comando de voz para ativar |
-| `is_public` | boolean | Nao | Template publico |
+| `subcategory` | string | Nao | Subcategoria |
+| `tags` | string[] | Nao | Tags para busca |
+| `voice_command` | string | Nao | Comando de voz principal |
+| `voice_aliases` | string[] | Nao | Comandos de voz alternativos |
+| `is_favorite` | boolean | Nao | Marcar como favorito |
+| `is_public` | boolean | Nao | Tornar publico |
 
-### Exemplo
+### Exemplos
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://copilot.laudos.ai/api/v1/templates" \
   -H "Authorization: Bearer sk_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "TC Torax Normal",
-    "content": "<h1>LAUDO RADIOLOGICO</h1><p>Exame dentro dos limites da normalidade.</p>",
+    "name": "TC Torax com Enfisema",
+    "content": "<h1>LAUDO RADIOLOGICO</h1><h2>TC DE TORAX</h2><p><strong>Tecnica:</strong> TC de torax com protocolo de alta resolucao.</p><h3>ANALISE</h3><p>Areas de atenuacao reduzida compativel com enfisema centrolobular, predominando nos lobos superiores bilateralmente.</p><h3>IMPRESSAO</h3><p>Enfisema pulmonar centrolobular bilateral, de predomínio superior.</p>",
+    "exam_type": "CT",
+    "modality": "CT",
+    "category": "torax",
+    "subcategory": "doenca_pulmonar",
+    "tags": ["enfisema", "dpoc", "tabagismo"],
+    "voice_command": "TC TORAX ENFISEMA",
+    "voice_aliases": ["ENFISEMA TORAX", "CT ENFISEMA"]
+  }'
+```
+
+```typescript TypeScript SDK
+const { data: template } = await client.templates.create({
+  name: 'TC Torax com Enfisema',
+  content: `
+    <h1>LAUDO RADIOLOGICO</h1>
+    <h2>TC DE TORAX</h2>
+    <p><strong>Tecnica:</strong> TC de torax com protocolo de alta resolucao.</p>
+    <h3>ANALISE</h3>
+    <p>Areas de atenuacao reduzida compativel com enfisema centrolobular,
+    predominando nos lobos superiores bilateralmente.</p>
+    <h3>IMPRESSAO</h3>
+    <p>Enfisema pulmonar centrolobular bilateral, de predominio superior.</p>
+  `,
+  exam_type: 'CT',
+  modality: 'CT',
+  category: 'torax',
+  subcategory: 'doenca_pulmonar',
+  tags: ['enfisema', 'dpoc', 'tabagismo'],
+  voice_command: 'TC TORAX ENFISEMA',
+  voice_aliases: ['ENFISEMA TORAX', 'CT ENFISEMA'],
+});
+
+console.log(`Template criado: ${template.id}`);
+```
+
+```python Python
+response = requests.post(
+    "https://copilot.laudos.ai/api/v1/templates",
+    headers={
+        "Authorization": "Bearer sk_live_xxx",
+        "Content-Type": "application/json"
+    },
+    json={
+        "name": "TC Torax com Enfisema",
+        "content": """
+            <h1>LAUDO RADIOLOGICO</h1>
+            <h2>TC DE TORAX</h2>
+            <p><strong>Tecnica:</strong> TC de torax com protocolo de alta resolucao.</p>
+            <h3>ANALISE</h3>
+            <p>Areas de atenuacao reduzida compativel com enfisema centrolobular.</p>
+            <h3>IMPRESSAO</h3>
+            <p>Enfisema pulmonar centrolobular bilateral.</p>
+        """,
+        "exam_type": "CT",
+        "modality": "CT",
+        "category": "torax",
+        "tags": ["enfisema", "dpoc", "tabagismo"],
+        "voice_command": "TC TORAX ENFISEMA"
+    }
+)
+
+template = response.json()["data"]
+print(f"Template criado: {template['id']}")
+```
+
+</CodeGroup>
+
+### Resposta
+
+```json
+{
+  "data": {
+    "id": "tpl_ghi789",
+    "name": "TC Torax com Enfisema",
+    "content": "<h1>LAUDO RADIOLOGICO</h1>...",
     "exam_type": "CT",
     "category": "torax",
-    "voice_command": "TC TORAX NORMAL"
-  }'
+    "voice_command": "TC TORAX ENFISEMA",
+    "usage_count": 0,
+    "created_at": "2026-01-26T15:00:00Z"
+  }
+}
 ```
 
 ---
 
 ## Atualizar Template
 
-<ParamField path="PUT" method="/templates/{id}">
-  Atualiza um template existente.
-</ParamField>
+Atualiza um template existente. Apenas os campos fornecidos serao atualizados.
 
-### Exemplo
+```
+PUT /templates/{id}
+```
 
-```bash
-curl -X PUT "https://copilot.laudos.ai/api/v1/templates/uuid" \
+### Exemplos
+
+<CodeGroup>
+
+```bash cURL
+curl -X PUT "https://copilot.laudos.ai/api/v1/templates/tpl_abc123" \
   -H "Authorization: Bearer sk_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "TC Torax Normal - v2",
-    "is_favorite": true
+    "name": "TC Torax Normal - Atualizado",
+    "is_favorite": true,
+    "tags": ["normal", "rotina", "padrao", "baseline"]
   }'
 ```
+
+```typescript TypeScript SDK
+const { data: updated } = await client.templates.update('tpl_abc123', {
+  name: 'TC Torax Normal - Atualizado',
+  is_favorite: true,
+  tags: ['normal', 'rotina', 'padrao', 'baseline'],
+});
+
+console.log(`Template atualizado: ${updated.name}`);
+```
+
+```python Python
+response = requests.put(
+    "https://copilot.laudos.ai/api/v1/templates/tpl_abc123",
+    headers={
+        "Authorization": "Bearer sk_live_xxx",
+        "Content-Type": "application/json"
+    },
+    json={
+        "name": "TC Torax Normal - Atualizado",
+        "is_favorite": True,
+        "tags": ["normal", "rotina", "padrao", "baseline"]
+    }
+)
+
+updated = response.json()["data"]
+print(f"Template atualizado: {updated['name']}")
+```
+
+</CodeGroup>
 
 ---
 
 ## Excluir Template
 
-<ParamField path="DELETE" method="/templates/{id}">
-  Exclui um template permanentemente.
-</ParamField>
+Exclui um template permanentemente. Esta acao nao pode ser desfeita.
 
-### Exemplo
+```
+DELETE /templates/{id}
+```
 
-```bash
-curl -X DELETE "https://copilot.laudos.ai/api/v1/templates/uuid" \
+### Exemplos
+
+<CodeGroup>
+
+```bash cURL
+curl -X DELETE "https://copilot.laudos.ai/api/v1/templates/tpl_abc123" \
   -H "Authorization: Bearer sk_live_xxx"
 ```
+
+```typescript TypeScript SDK
+await client.templates.delete('tpl_abc123');
+console.log('Template excluido');
+```
+
+```python Python
+response = requests.delete(
+    "https://copilot.laudos.ai/api/v1/templates/tpl_abc123",
+    headers={"Authorization": "Bearer sk_live_xxx"}
+)
+
+if response.status_code == 204:
+    print("Template excluido")
+```
+
+</CodeGroup>
 
 ### Resposta
 
 ```
 HTTP/1.1 204 No Content
+```
+
+
+---
+
+## Codigos de Erro
+
+| Codigo HTTP | Tipo | Descricao |
+|-------------|------|-----------|
+| `400` | `bad_request` | Requisicao malformada |
+| `401` | `unauthorized` | API Key invalida ou ausente |
+| `403` | `forbidden` | Sem permissao (template de outro usuario) |
+| `404` | `not_found` | Template nao encontrado |
+| `409` | `conflict` | Comando de voz ja existe |
+| `422` | `validation_error` | Erro de validacao |
+| `429` | `rate_limited` | Limite de requisicoes excedido |
+
+### Exemplo de Erro
+
+```json
+{
+  "error": {
+    "code": "conflict",
+    "message": "O comando de voz 'TC TORAX NORMAL' ja esta em uso",
+    "details": {
+      "field": "voice_command",
+      "existing_template_id": "tpl_abc123"
+    }
+  }
+}
 ```

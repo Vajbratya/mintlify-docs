@@ -49,7 +49,7 @@
         "tab": "Developers",
         "groups": [
           {
-            "group": "Inicio",
+            "group": "Início",
             "icon": "code",
             "pages": [
               "developers/index",
@@ -62,12 +62,11 @@
             "pages": [
               "developers/api-reports",
               "developers/api-templates",
-              "developers/api-ai",
               "developers/api-pacs"
             ]
           },
           {
-            "group": "Integracoes",
+            "group": "Integrações",
             "icon": "plug",
             "pages": [
               "developers/integracao-pacs",

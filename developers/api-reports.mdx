@@ -1,12 +1,12 @@
 ---
 title: 'Reports API'
-description: 'Endpoints para gerenciar laudos radiologicos'
+description: 'CRUD completo para laudos radiologicos'
 icon: 'file-medical'
 ---
 
 # Reports API
 
-CRUD completo para laudos radiologicos com suporte a campos HL7/DICOM.
+Gerencie laudos radiologicos com suporte a HTML, metadados DICOM e integracao com PACS.
 
 ## Base URL
 
@@ -16,28 +16,74 @@ https://copilot.laudos.ai/api/v1
 
 ---
 
+## Endpoints
+
+| Metodo | Endpoint | Descricao |
+|--------|----------|-----------|
+| `GET` | `/reports` | Listar laudos |
+| `GET` | `/reports/:id` | Obter laudo |
+| `POST` | `/reports` | Criar laudo |
+| `PUT` | `/reports/:id` | Atualizar laudo |
+| `DELETE` | `/reports/:id` | Excluir laudo |
+
+---
+
 ## Listar Laudos
 
 <ParamField path="GET" method="/reports">
-  Lista todos os laudos do usuario autenticado.
+  Retorna uma lista paginada de laudos do usuario autenticado.
 </ParamField>
 
 ### Query Parameters
 
-| Parametro | Tipo | Descricao |
-|-----------|------|-----------|
-| `limit` | number | Maximo de resultados (1-100, padrao: 50) |
-| `offset` | number | Offset para paginacao |
-| `sort` | string | Ordenacao: `asc` ou `desc` (padrao) |
-| `exam_type` | string | Filtrar por tipo de exame (CT, MR, US, etc.) |
-| `search` | string | Busca por titulo ou conteudo |
+| Parametro | Tipo | Padrao | Descricao |
+|-----------|------|--------|-----------|
+| `limit` | integer | 20 | Maximo de resultados (1-100) |
+| `offset` | integer | 0 | Pular N resultados |
+| `sort` | string | `desc` | Ordenacao: `asc` ou `desc` |
+| `exam_type` | string | - | Filtrar por tipo: `CT`, `MR`, `US`, `XR`, `MG` |
+| `modality` | string | - | Filtrar por modalidade DICOM |
+| `search` | string | - | Busca por titulo ou conteudo |
+| `status` | string | - | Filtrar por status: `draft`, `final`, `corrected` |
+| `created_after` | string | - | Data ISO 8601 (ex: `2024-01-01`) |
+| `created_before` | string | - | Data ISO 8601 |
 
 ### Exemplo
 
-```bash
-curl -X GET "https://copilot.laudos.ai/api/v1/reports?limit=10&exam_type=CT" \
+<CodeGroup>
+
+```bash cURL
+curl -X GET "https://copilot.laudos.ai/api/v1/reports?limit=10&exam_type=CT&sort=desc" \
   -H "Authorization: Bearer sk_live_xxx"
 ```
+
+```typescript TypeScript
+import { LaudosAI } from '@laudosai/sdk';
+
+const client = new LaudosAI({ apiKey: process.env.LAUDOSAI_API_KEY });
+
+const { data, meta } = await client.reports.list({
+  limit: 10,
+  exam_type: 'CT',
+  sort: 'desc',
+});
+
+console.log(`Pagina com ${data.length} de ${meta.total} laudos`);
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    "https://copilot.laudos.ai/api/v1/reports",
+    headers={"Authorization": "Bearer sk_live_xxx"},
+    params={"limit": 10, "exam_type": "CT", "sort": "desc"}
+)
+data = response.json()
+print(f"Total: {data['meta']['total']} laudos")
+```
+
+</CodeGroup>
 
 ### Resposta
 
@@ -45,20 +91,24 @@ curl -X GET "https://copilot.laudos.ai/api/v1/reports?limit=10&exam_type=CT" \
 {
   "data": [
     {
-      "id": "uuid",
+      "id": "rpt_abc123def456",
       "title": "TC de Torax",
-      "content": "<h1>LAUDO</h1>...",
+      "content": "<h1>LAUDO RADIOLOGICO</h1><p>...</p>",
       "exam_type": "CT",
-      "created_at": "2026-01-26T12:00:00Z",
-      "updated_at": "2026-01-26T12:30:00Z",
-      "accession_number": "12345",
-      "study_instance_uid": "1.2.3.4.5",
       "modality": "CT",
-      "tags": ["torax", "normal"]
+      "status": "final",
+      "accession_number": "ACC12345",
+      "patient_id": "PAT001",
+      "patient_name": "Silva, Joao",
+      "study_date": "2024-01-15T10:30:00Z",
+      "created_at": "2024-01-15T14:22:00Z",
+      "updated_at": "2024-01-15T14:45:00Z",
+      "word_count": 245,
+      "character_count": 1580
     }
   ],
   "meta": {
-    "total": 150,
+    "total": 156,
     "limit": 10,
     "offset": 0,
     "has_more": true
@@ -70,35 +120,70 @@ curl -X GET "https://copilot.laudos.ai/api/v1/reports?limit=10&exam_type=CT" \
 
 ## Obter Laudo
 
-<ParamField path="GET" method="/reports/{id}">
-  Retorna um laudo especifico pelo ID ou hash_id.
+<ParamField path="GET" method="/reports/:id">
+  Retorna um laudo especifico pelo ID.
 </ParamField>
+
+### Path Parameters
+
+| Parametro | Tipo | Descricao |
+|-----------|------|-----------|
+| `id` | string | ID do laudo (formato: `rpt_xxx` ou UUID) |
 
 ### Exemplo
 
-```bash
-curl -X GET "https://copilot.laudos.ai/api/v1/reports/uuid" \
+<CodeGroup>
+
+```bash cURL
+curl -X GET "https://copilot.laudos.ai/api/v1/reports/rpt_abc123def456" \
   -H "Authorization: Bearer sk_live_xxx"
 ```
+
+```typescript TypeScript
+const { data: report } = await client.reports.get('rpt_abc123def456');
+console.log(report.title);
+console.log(report.content);
+```
+
+```python Python
+response = requests.get(
+    "https://copilot.laudos.ai/api/v1/reports/rpt_abc123def456",
+    headers={"Authorization": "Bearer sk_live_xxx"}
+)
+report = response.json()["data"]
+print(report["title"])
+```
+
+</CodeGroup>
 
 ### Resposta
 
 ```json
 {
   "data": {
-    "id": "uuid",
+    "id": "rpt_abc123def456",
     "title": "TC de Torax",
-    "content": "<h1>LAUDO</h1>...",
+    "content": "<h1>LAUDO RADIOLOGICO</h1><h2>TC DE TORAX</h2><p><strong>Tecnica:</strong> Tomografia computadorizada helicoidal do torax, sem administracao de meio de contraste endovenoso.</p><p><strong>Achados:</strong> Parenquima pulmonar com atenuacao normal. Nao ha nodulos ou massas pulmonares. Arvore bronquica de calibre normal.</p><p><strong>Impressao:</strong> Exame dentro dos limites da normalidade.</p>",
+    "content_plain": "LAUDO RADIOLOGICO\n\nTC DE TORAX\n\nTecnica: Tomografia computadorizada helicoidal...",
     "exam_type": "CT",
-    "created_at": "2026-01-26T12:00:00Z",
-    "updated_at": "2026-01-26T12:30:00Z",
-    "accession_number": "12345",
-    "study_instance_uid": "1.2.3.4.5",
     "modality": "CT",
-    "referring_physician": "Dr. Silva",
-    "performing_physician": "Dr. Costa",
-    "study_description": "TC Torax sem contraste",
-    "tags": ["torax", "normal"]
+    "status": "final",
+    "accession_number": "ACC12345",
+    "study_instance_uid": "1.2.840.113619.2.55.3.604688119.969.1234567890.123",
+    "patient_id": "PAT001",
+    "patient_name": "Silva, Joao",
+    "patient_dob": "1958-03-15",
+    "patient_gender": "M",
+    "study_date": "2024-01-15T10:30:00Z",
+    "study_description": "TC de Torax sem contraste",
+    "referring_physician": "Dr. Carlos Lima",
+    "reporting_radiologist": "Dra. Maria Santos",
+    "institution": "Hospital Central",
+    "critical_findings": [],
+    "created_at": "2024-01-15T14:22:00Z",
+    "updated_at": "2024-01-15T14:45:00Z",
+    "word_count": 245,
+    "character_count": 1580
   }
 }
 ```
@@ -108,7 +193,7 @@ curl -X GET "https://copilot.laudos.ai/api/v1/reports/uuid" \
 ## Criar Laudo
 
 <ParamField path="POST" method="/reports">
-  Cria um novo laudo.
+  Cria um novo laudo radiologico.
 </ParamField>
 
 ### Body Parameters
@@ -117,18 +202,26 @@ curl -X GET "https://copilot.laudos.ai/api/v1/reports/uuid" \
 |-------|------|-------------|-----------|
 | `title` | string | Sim | Titulo do laudo |
 | `content` | string | Sim | Conteudo HTML do laudo |
-| `exam_type` | string | Nao | Tipo de exame (CT, MR, US, XR, etc.) |
-| `accession_number` | string | Nao | Numero de acesso HL7/DICOM |
-| `study_instance_uid` | string | Nao | Study Instance UID DICOM |
-| `modality` | string | Nao | Modalidade (CT, MR, US, etc.) |
-| `referring_physician` | string | Nao | Medico solicitante |
-| `performing_physician` | string | Nao | Medico executante |
+| `exam_type` | string | Nao | Tipo: `CT`, `MR`, `US`, `XR`, `MG`, `NM`, `PT` |
+| `modality` | string | Nao | Modalidade DICOM |
+| `status` | string | Nao | Status: `draft`, `final`, `corrected` |
+| `accession_number` | string | Nao | Numero de acesso |
+| `study_instance_uid` | string | Nao | Study Instance UID |
+| `patient_id` | string | Nao | ID do paciente |
+| `patient_name` | string | Nao | Nome (Sobrenome, Nome) |
+| `patient_dob` | string | Nao | Data nascimento (YYYY-MM-DD) |
+| `patient_gender` | string | Nao | Genero: `M`, `F`, `O` |
+| `study_date` | string | Nao | Data do estudo (ISO 8601) |
 | `study_description` | string | Nao | Descricao do estudo |
-| `tags` | string[] | Nao | Tags para organizacao |
+| `referring_physician` | string | Nao | Medico solicitante |
+| `reporting_radiologist` | string | Nao | Radiologista |
+| `institution` | string | Nao | Instituicao |
 
 ### Exemplo
 
-```bash
+<CodeGroup>
+
+```bash cURL
 curl -X POST "https://copilot.laudos.ai/api/v1/reports" \
   -H "Authorization: Bearer sk_live_xxx" \
   -H "Content-Type: application/json" \
@@ -136,22 +229,69 @@ curl -X POST "https://copilot.laudos.ai/api/v1/reports" \
     "title": "TC de Torax",
     "content": "<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>",
     "exam_type": "CT",
-    "accession_number": "12345",
     "modality": "CT",
-    "referring_physician": "Dr. Silva"
+    "status": "final",
+    "accession_number": "ACC12345",
+    "patient_id": "PAT001",
+    "patient_name": "Silva, Joao",
+    "patient_dob": "1958-03-15",
+    "patient_gender": "M",
+    "reporting_radiologist": "Dra. Maria Santos"
   }'
 ```
+
+```typescript TypeScript
+const { data: report } = await client.reports.create({
+  title: 'TC de Torax',
+  content: '<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>',
+  exam_type: 'CT',
+  modality: 'CT',
+  status: 'final',
+  accession_number: 'ACC12345',
+  patient_id: 'PAT001',
+  patient_name: 'Silva, Joao',
+  patient_dob: '1958-03-15',
+  patient_gender: 'M',
+  reporting_radiologist: 'Dra. Maria Santos',
+});
+
+console.log(`Laudo criado: ${report.id}`);
+```
+
+```python Python
+response = requests.post(
+    "https://copilot.laudos.ai/api/v1/reports",
+    headers={
+        "Authorization": "Bearer sk_live_xxx",
+        "Content-Type": "application/json"
+    },
+    json={
+        "title": "TC de Torax",
+        "content": "<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>",
+        "exam_type": "CT",
+        "modality": "CT",
+        "status": "final",
+        "accession_number": "ACC12345"
+    }
+)
+report = response.json()["data"]
+print(f"Laudo criado: {report['id']}")
+```
+
+</CodeGroup>
 
 ### Resposta
 
 ```json
 {
   "data": {
-    "id": "new-uuid",
+    "id": "rpt_xyz789ghi012",
     "title": "TC de Torax",
     "content": "<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>",
     "exam_type": "CT",
-    "created_at": "2026-01-26T12:00:00Z"
+    "status": "final",
+    "created_at": "2024-01-15T14:22:00Z",
+    "updated_at": "2024-01-15T14:22:00Z"
   }
 }
 ```
@@ -160,56 +300,237 @@ curl -X POST "https://copilot.laudos.ai/api/v1/reports" \
 
 ## Atualizar Laudo
 
-<ParamField path="PUT" method="/reports/{id}">
-  Atualiza um laudo existente.
+<ParamField path="PUT" method="/reports/:id">
+  Atualiza campos de um laudo existente. Apenas os campos enviados serao atualizados.
 </ParamField>
+
+### Path Parameters
+
+| Parametro | Tipo | Descricao |
+|-----------|------|-----------|
+| `id` | string | ID do laudo |
 
 ### Body Parameters
 
-Mesmos campos do POST, todos opcionais.
+Todos os campos sao opcionais. Apenas os campos enviados serao atualizados.
 
 ### Exemplo
 
-```bash
-curl -X PUT "https://copilot.laudos.ai/api/v1/reports/uuid" \
+<CodeGroup>
+
+```bash cURL
+curl -X PUT "https://copilot.laudos.ai/api/v1/reports/rpt_abc123def456" \
   -H "Authorization: Bearer sk_live_xxx" \
   -H "Content-Type: application/json" \
   -d '{
-    "title": "TC de Torax - Atualizado",
-    "accession_number": "67890"
+    "title": "TC de Torax - Corrigido",
+    "status": "corrected",
+    "content": "<h1>LAUDO RADIOLOGICO</h1><p>Exame corrigido.</p>"
   }'
+```
+
+```typescript TypeScript
+const { data: updated } = await client.reports.update('rpt_abc123def456', {
+  title: 'TC de Torax - Corrigido',
+  status: 'corrected',
+  content: '<h1>LAUDO RADIOLOGICO</h1><p>Exame corrigido.</p>',
+});
+
+console.log(`Laudo atualizado: ${updated.title}`);
+```
+
+</CodeGroup>
+
+### Resposta
+
+```json
+{
+  "data": {
+    "id": "rpt_abc123def456",
+    "title": "TC de Torax - Corrigido",
+    "status": "corrected",
+    "updated_at": "2024-01-15T15:30:00Z"
+  }
+}
 ```
 
 ---
 
 ## Excluir Laudo
 
-<ParamField path="DELETE" method="/reports/{id}">
-  Exclui um laudo permanentemente.
+<ParamField path="DELETE" method="/reports/:id">
+  Exclui permanentemente um laudo.
 </ParamField>
+
+<Warning>
+  Esta acao e irreversivel. Laudos ja enviados ao PACS nao podem ser excluidos.
+</Warning>
 
 ### Exemplo
 
-```bash
-curl -X DELETE "https://copilot.laudos.ai/api/v1/reports/uuid" \
+<CodeGroup>
+
+```bash cURL
+curl -X DELETE "https://copilot.laudos.ai/api/v1/reports/rpt_abc123def456" \
   -H "Authorization: Bearer sk_live_xxx"
 ```
 
+```typescript TypeScript
+await client.reports.delete('rpt_abc123def456');
+console.log('Laudo excluido com sucesso');
+```
+
+```python Python
+response = requests.delete(
+    "https://copilot.laudos.ai/api/v1/reports/rpt_abc123def456",
+    headers={"Authorization": "Bearer sk_live_xxx"}
+)
+if response.status_code == 200:
+    print("Laudo excluido com sucesso")
+```
+
+</CodeGroup>
+
 ### Resposta
 
-```
-HTTP/1.1 204 No Content
+```json
+{
+  "data": {
+    "id": "rpt_abc123def456",
+    "deleted": true
+  }
+}
 ```
 
 ---
 
-## Codigos de Erro
+## Objeto Report
+
+### Campos Completos
+
+| Campo | Tipo | Descricao |
+|-------|------|-----------|
+| `id` | string | Identificador unico (formato: `rpt_xxx`) |
+| `title` | string | Titulo do laudo |
+| `content` | string | Conteudo HTML completo |
+| `content_plain` | string | Conteudo em texto puro |
+| `exam_type` | string | Tipo de exame (CT, MR, US, etc.) |
+| `modality` | string | Modalidade DICOM |
+| `status` | string | Status do laudo |
+| `accession_number` | string | Numero de acesso HL7/DICOM |
+| `study_instance_uid` | string | Study Instance UID DICOM |
+| `patient_id` | string | ID do paciente |
+| `patient_name` | string | Nome (formato: Sobrenome, Nome) |
+| `patient_dob` | string | Data de nascimento (YYYY-MM-DD) |
+| `patient_gender` | string | Genero: M, F, O |
+| `study_date` | string | Data/hora do estudo (ISO 8601) |
+| `study_description` | string | Descricao do estudo |
+| `referring_physician` | string | Medico solicitante |
+| `reporting_radiologist` | string | Radiologista responsavel |
+| `institution` | string | Nome da instituicao |
+| `critical_findings` | array | Lista de achados criticos |
+| `word_count` | integer | Contagem de palavras |
+| `character_count` | integer | Contagem de caracteres |
+| `created_at` | string | Data de criacao (ISO 8601) |
+| `updated_at` | string | Data de atualizacao (ISO 8601) |
+
+### Status do Laudo
+
+| Valor | Descricao |
+|-------|-----------|
+| `draft` | Rascunho, nao finalizado |
+| `final` | Laudo final, pronto para envio ao PACS |
+| `corrected` | Laudo corrigido apos envio inicial |
+
+### Tipos de Exame Suportados
 
 | Codigo | Descricao |
 |--------|-----------|
-| 400 | Requisicao invalida |
-| 401 | Nao autenticado |
-| 403 | Sem permissao |
-| 404 | Laudo nao encontrado |
-| 429 | Rate limit excedido |
-| 500 | Erro interno |
+| `CT` | Tomografia Computadorizada |
+| `MR` | Ressonancia Magnetica |
+| `US` | Ultrassonografia |
+| `XR` | Radiografia Simples |
+| `MG` | Mamografia |
+| `NM` | Medicina Nuclear |
+| `PT` | PET-CT |
+| `CR` | Radiografia Computadorizada |
+| `DX` | Radiografia Digital |
+| `RF` | Fluoroscopia |
+
+---
+
+## Tratamento de Erros
+
+### Codigos de Erro
+
+| Codigo HTTP | Tipo | Descricao |
+|-------------|------|-----------|
+| `400` | `bad_request` | Requisicao malformada |
+| `401` | `unauthorized` | API Key invalida ou ausente |
+| `403` | `forbidden` | Sem permissao para este recurso |
+| `404` | `not_found` | Laudo nao encontrado |
+| `409` | `conflict` | Conflito (laudo ja enviado ao PACS) |
+| `422` | `validation_error` | Erro de validacao nos campos |
+| `429` | `rate_limited` | Limite de requisicoes excedido |
+| `500` | `internal_error` | Erro interno do servidor |
+
+### Exemplo de Resposta de Erro
+
+```json
+{
+  "error": {
+    "code": "validation_error",
+    "message": "O campo 'title' e obrigatorio",
+    "details": {
+      "field": "title",
+      "reason": "required"
+    }
+  }
+}
+```
+
+### Tratamento em Codigo
+
+<CodeGroup>
+
+```typescript TypeScript
+import { LaudosAI, LaudosAIError } from '@laudosai/sdk';
+
+try {
+  const { data } = await client.reports.get('invalid-id');
+} catch (error) {
+  if (error instanceof LaudosAIError) {
+    console.error(`Erro ${error.code}: ${error.message}`);
+
+    if (error.isNotFoundError()) {
+      console.log('Laudo nao encontrado');
+    }
+    if (error.isValidationError()) {
+      console.log('Campos invalidos:', error.details);
+    }
+    if (error.isRateLimitError()) {
+      console.log('Aguarde antes de tentar novamente');
+    }
+  }
+}
+```
+
+```python Python
+response = requests.get(
+    "https://copilot.laudos.ai/api/v1/reports/invalid-id",
+    headers={"Authorization": "Bearer sk_live_xxx"}
+)
+
+if response.status_code == 404:
+    print("Laudo nao encontrado")
+elif response.status_code == 401:
+    print("API Key invalida")
+elif response.status_code == 429:
+    retry_after = response.headers.get("Retry-After", 60)
+    print(f"Rate limit. Aguarde {retry_after} segundos")
+else:
+    error = response.json().get("error", {})
+    print(f"Erro: {error.get('message')}")
+```
+
+</CodeGroup>

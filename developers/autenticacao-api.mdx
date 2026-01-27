@@ -1,123 +1,111 @@
 ---
-title: 'Autenticação'
-description: 'Como autenticar suas requisições à API do Laudos.AI'
+title: 'Autenticacao'
+description: 'Como autenticar requisicoes a API do Laudos.AI'
 icon: 'key'
 ---
 
-# Autenticação da API
+# Autenticacao
 
-Todas as requisições à API do Laudos.AI devem ser autenticadas. Oferecemos dois métodos de autenticação.
+Todas as requisicoes a API do Laudos.AI devem incluir uma API Key no header `Authorization`.
 
 ## API Keys
 
-A forma mais simples de autenticação. Ideal para integrações servidor-a-servidor.
+Gere sua API Key em [copilot.laudos.ai/settings/integrations](https://copilot.laudos.ai/settings/integrations).
 
 ```bash
-curl -X GET "https://api.laudos.ai/v1/connections" \
+curl -X GET "https://copilot.laudos.ai/api/v1/reports" \
   -H "Authorization: Bearer sk_live_xxxxxxxxxxxxx"
 ```
 
 <Warning>
-  Nunca exponha sua API Key em código client-side ou repositórios públicos.
+  Nunca exponha sua API Key em codigo client-side ou repositorios publicos. Use variaveis de ambiente no servidor.
 </Warning>
 
-### Tipos de Chaves
+### Formato da Chave
 
-| Prefixo | Ambiente | Uso |
-|---------|----------|-----|
-| `sk_live_` | Produção | Operações reais |
-| `sk_test_` | Sandbox | Testes e desenvolvimento |
-
-## OAuth 2.0
-
-Para aplicações que acessam dados em nome de usuários.
-
-### Fluxo Authorization Code
-
-```mermaid
-sequenceDiagram
-    participant App as Sua Aplicação
-    participant User as Usuário
-    participant Auth as Laudos.AI Auth
-    participant API as Laudos.AI API
-
-    App->>User: Redireciona para login
-    User->>Auth: Autoriza acesso
-    Auth->>App: Retorna authorization_code
-    App->>Auth: Troca code por access_token
-    Auth->>App: Retorna access_token
-    App->>API: Requisições com Bearer token
+```
+sk_live_ + caracteres alfanumericos
 ```
 
-### Endpoints OAuth
+Exemplo: `sk_live_SUA_CHAVE_AQUI`
 
-| Endpoint | URL |
-|----------|-----|
-| Authorize | `https://auth.laudos.ai/oauth/authorize` |
-| Token | `https://auth.laudos.ai/oauth/token` |
-| Revoke | `https://auth.laudos.ai/oauth/revoke` |
+### Permissoes
 
-### Exemplo: Obter Token
+Cada API Key possui permissoes configuradas no momento da criacao:
 
-```bash
-curl -X POST "https://auth.laudos.ai/oauth/token" \
-  -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "grant_type=authorization_code" \
-  -d "code=AUTH_CODE_HERE" \
-  -d "client_id=YOUR_CLIENT_ID" \
-  -d "client_secret=YOUR_CLIENT_SECRET" \
-  -d "redirect_uri=https://your-app.com/callback"
+| Permissao | Descricao |
+|-----------|-----------|
+| `reports` | Ler e escrever laudos |
+| `templates` | Gerenciar templates |
+| `pacs` | Enviar laudos ao PACS |
+
+### Seguranca das Chaves
+
+- Chaves sao armazenadas com hash SHA-256 (nao armazenamos o valor original)
+- Apos gerada, a chave e exibida apenas uma vez
+- Se perder sua chave, revogue-a e gere uma nova
+
+---
+
+## Exemplo de Uso
+
+<CodeGroup>
+
+```bash cURL
+curl -X GET "https://copilot.laudos.ai/api/v1/reports?limit=10" \
+  -H "Authorization: Bearer sk_live_xxx"
 ```
 
-### Resposta
+```typescript TypeScript
+const response = await fetch('https://copilot.laudos.ai/api/v1/reports?limit=10', {
+  headers: {
+    'Authorization': `Bearer ${process.env.LAUDOSAI_API_KEY}`,
+  },
+});
 
-```json
-{
-  "access_token": "eyJhbGciOiJSUzI1NiIs...",
-  "token_type": "Bearer",
-  "expires_in": 3600,
-  "refresh_token": "rt_xxxxxxxxxxxxxxxx",
-  "scope": "read:reports write:reports"
+if (!response.ok) {
+  throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 }
+
+const { data } = await response.json();
 ```
 
-## Escopos Disponíveis
+```python Python
+import os
+import requests
 
-| Escopo | Descrição |
-|--------|-----------|
-| `read:reports` | Ler laudos |
-| `write:reports` | Criar e editar laudos |
-| `read:connections` | Listar conexões PACS |
-| `write:connections` | Gerenciar conexões PACS |
-| `read:templates` | Acessar templates |
-| `admin` | Acesso administrativo completo |
+response = requests.get(
+    "https://copilot.laudos.ai/api/v1/reports",
+    headers={"Authorization": f"Bearer {os.environ['LAUDOSAI_API_KEY']}"},
+    params={"limit": 10}
+)
+response.raise_for_status()
+data = response.json()
+```
+
+</CodeGroup>
+
+---
 
 ## Respostas de Erro
 
+| Codigo | Descricao |
+|--------|-----------|
+| `401` | API Key invalida, expirada ou ausente |
+| `403` | Chave nao possui permissao para o recurso solicitado |
+| `429` | Rate limit excedido |
+
 ```json
 {
-  "error": "unauthorized",
-  "message": "Token inválido ou expirado",
-  "code": 401
+  "error": "API key invalida"
 }
 ```
 
-| Código | Significado |
-|--------|-------------|
-| 401 | Não autenticado |
-| 403 | Sem permissão para recurso |
-| 429 | Rate limit excedido |
+---
 
-## Boas Práticas
+## Boas Praticas
 
-<AccordionGroup>
-  <Accordion title="Armazene chaves com segurança">
-    Use variáveis de ambiente ou secrets managers (AWS Secrets Manager, HashiCorp Vault).
-  </Accordion>
-  <Accordion title="Rotacione chaves periodicamente">
-    Recomendamos rotação a cada 90 dias para chaves de produção.
-  </Accordion>
-  <Accordion title="Use escopos mínimos">
-    Solicite apenas os escopos necessários para sua integração.
-  </Accordion>
-</AccordionGroup>
+- Armazene chaves em variaveis de ambiente ou secrets managers (AWS Secrets Manager, HashiCorp Vault, Vercel Environment Variables)
+- Use uma chave separada por ambiente (desenvolvimento, staging, producao)
+- Revogue chaves que nao estao mais em uso
+- Monitore o uso da API em **Configuracoes > Integracoes** na plataforma

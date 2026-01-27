@@ -6,180 +6,35 @@ icon: 'cube'
 
 # @laudosai/sdk
 
-SDK oficial TypeScript para integracao com a API do Laudos.AI. Compativel com Node.js, Bun e Deno.
+SDK oficial TypeScript para integracao com a API do Laudos.AI. Type-safe, compativel com Node.js 18+, Bun e Deno.
+
+<Note>
+  O SDK esta em desenvolvimento. Os exemplos abaixo mostram a API planejada. Enquanto o SDK nao estiver publicado, use `fetch` diretamente conforme mostrado na documentacao de cada endpoint.
+</Note>
+
+---
 
 ## Instalacao
 
-```bash
+<CodeGroup>
+
+```bash npm
 npm install @laudosai/sdk
-# ou
-yarn add @laudosai/sdk
-# ou
+```
+
+```bash pnpm
+pnpm add @laudosai/sdk
+```
+
+```bash bun
 bun add @laudosai/sdk
 ```
 
-## Configuracao
-
-```typescript
-import { LaudosAI } from '@laudosai/sdk';
-
-const client = new LaudosAI({
-  apiKey: process.env.LAUDOSAI_API_KEY, // sk_live_xxx ou sk_test_xxx
-  baseUrl: 'https://copilot.laudos.ai', // opcional
-  timeout: 30000, // opcional, em ms
-});
-```
+</CodeGroup>
 
 ---
 
-## Reports
-
-### Listar Laudos
-
-```typescript
-const { data, meta } = await client.reports.list({
-  limit: 10,
-  offset: 0,
-  exam_type: 'CT',
-  search: 'torax',
-});
-
-console.log(`Total: ${meta.total} laudos`);
-for (const report of data) {
-  console.log(report.title);
-}
-```
-
-### Obter Laudo
-
-```typescript
-const { data: report } = await client.reports.get('uuid');
-console.log(report.content);
-```
-
-### Criar Laudo
-
-```typescript
-const { data: newReport } = await client.reports.create({
-  title: 'TC de Torax',
-  content: '<h1>LAUDO</h1><p>Exame normal.</p>',
-  exam_type: 'CT',
-  accession_number: '12345',
-  modality: 'CT',
-  referring_physician: 'Dr. Silva',
-});
-
-console.log(`Criado: ${newReport.id}`);
-```
-
-### Atualizar Laudo
-
-```typescript
-const { data: updated } = await client.reports.update('uuid', {
-  title: 'TC de Torax - Atualizado',
-});
-```
-
-### Excluir Laudo
-
-```typescript
-await client.reports.delete('uuid');
-```
-
----
-
-## Templates
-
-### Listar Templates
-
-```typescript
-const { data: templates } = await client.templates.list({
-  exam_type: 'CT',
-  category: 'torax',
-});
-```
-
-### Criar Template
-
-```typescript
-const { data: template } = await client.templates.create({
-  name: 'TC Torax Normal',
-  content: '<h1>LAUDO</h1><p>Exame normal.</p>',
-  exam_type: 'CT',
-  voice_command: 'TC TORAX NORMAL',
-});
-```
-
----
-
-## AI Generation
-
-### Gerar Laudo com IA
-
-```typescript
-const { data } = await client.ai.generate({
-  findings: 'Nodulo pulmonar de 8mm no lobo superior direito',
-  exam_type: 'CT',
-  modality: 'CT',
-  patient_age: '65 anos',
-  patient_gender: 'M',
-  indication: 'Rastreamento de cancer de pulmao',
-});
-
-console.log(data.content); // HTML do laudo gerado
-console.log(`Tokens usados: ${data.usage.total_tokens}`);
-```
-
----
-
-## PACS Integration
-
-### Listar Conexoes
-
-```typescript
-const { data: connections } = await client.pacs.listConnections({
-  active_only: true,
-});
-
-for (const conn of connections) {
-  console.log(`${conn.name}: ${conn.status}`);
-}
-```
-
-### Enviar Laudo ao PACS
-
-```typescript
-const result = await client.pacs.send({
-  connection_id: 'conn-uuid',
-  report_text: '<h1>LAUDO</h1><p>Exame normal.</p>',
-  report_status: 'final',
-  accession_number: '12345',
-  patient_id: 'PAT001',
-  patient_name: 'Silva, Joao',
-  patient_dob: '1958-03-15',
-  patient_gender: 'M',
-  modality: 'CT',
-  study_description: 'TC de Torax',
-  // Campos HL7
-  attending_doctor: 'Dr. Paulo Lima',      // PV1-7
-  ordering_provider: 'Dr. Maria Costa',    // OBR-16
-  reporting_radiologist: 'Dr. Carlos Santos', // OBX-16
-  procedure_code: 'CT001',
-  procedure_description: 'TC de Torax sem contraste',
-});
-
-if (result.success) {
-  console.log(`Enviado via ${result.protocol} em ${result.duration_ms}ms`);
-} else {
-  console.error(`Erro: ${result.message}`);
-}
-```
-
----
-
-## Workflow Completo
-
-Exemplo completo: gerar laudo com IA e enviar ao PACS.
+## Quick Start
 
 ```typescript
 import { LaudosAI } from '@laudosai/sdk';
@@ -188,44 +43,165 @@ const client = new LaudosAI({
   apiKey: process.env.LAUDOSAI_API_KEY,
 });
 
-async function generateAndSend() {
-  // 1. Gerar laudo com IA
-  const { data: generated } = await client.ai.generate({
-    findings: 'Nodulo pulmonar de 8mm no lobo superior direito',
-    modality: 'CT',
-    patient_age: '65 anos',
-    patient_gender: 'M',
-  });
+// Listar laudos
+const { data: reports } = await client.reports.list({ limit: 10 });
+console.log(`${reports.length} laudos encontrados`);
 
-  console.log('Laudo gerado com sucesso');
+// Criar laudo
+const { data: report } = await client.reports.create({
+  title: 'TC de Torax',
+  content: '<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>',
+  exam_type: 'CT',
+});
+console.log(`Laudo criado: ${report.id}`);
+```
 
-  // 2. Salvar laudo
-  const { data: report } = await client.reports.create({
-    title: 'TC de Torax',
-    content: generated.content,
-    exam_type: 'CT',
-    accession_number: '12345',
-  });
+---
 
-  console.log(`Laudo salvo: ${report.id}`);
+## Configuracao
 
-  // 3. Enviar ao PACS
-  const result = await client.pacs.send({
-    connection_id: 'conn-uuid',
-    report_text: generated.content,
-    accession_number: '12345',
-    patient_id: 'PAT001',
-    patient_name: 'Silva, Joao',
-    modality: 'CT',
-    reporting_radiologist: 'Dr. Carlos Santos',
-  });
+```typescript
+const client = new LaudosAI({
+  apiKey: process.env.LAUDOSAI_API_KEY,
 
-  if (result.success) {
-    console.log(`Enviado ao PACS: ${result.protocol}`);
-  }
+  // Timeout em milissegundos (default: 30000)
+  timeout: 60000,
+
+  // Numero maximo de retries (default: 2)
+  maxRetries: 3,
+});
+```
+
+---
+
+## Reports
+
+```typescript
+// Listar
+const { data, meta } = await client.reports.list({
+  limit: 20,
+  exam_type: 'CT',
+  sort: 'desc',
+});
+
+// Obter por ID
+const { data: report } = await client.reports.get('rpt_abc123');
+
+// Criar
+const { data: newReport } = await client.reports.create({
+  title: 'TC de Torax',
+  content: '<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>',
+  exam_type: 'CT',
+  accession_number: 'ACC2026012600001',
+  patient_id: 'PAT001',
+  patient_name: 'Silva, Joao',
+  status: 'final',
+});
+
+// Atualizar
+const { data: updated } = await client.reports.update('rpt_abc123', {
+  title: 'TC de Torax - Corrigido',
+  status: 'corrected',
+});
+
+// Excluir
+await client.reports.delete('rpt_abc123');
+```
+
+---
+
+## Templates
+
+```typescript
+// Listar
+const { data: templates } = await client.templates.list({
+  exam_type: 'CT',
+  category: 'torax',
+});
+
+// Criar
+const { data: template } = await client.templates.create({
+  name: 'TC Torax Normal',
+  content: '<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>',
+  exam_type: 'CT',
+  category: 'torax',
+});
+
+// Atualizar
+await client.templates.update('tpl_abc123', {
+  name: 'TC Torax Normal - Atualizado',
+});
+
+// Excluir
+await client.templates.delete('tpl_abc123');
+```
+
+---
+
+## PACS
+
+```typescript
+// Listar conexoes
+const { data: connections } = await client.pacs.listConnections();
+
+// Enviar laudo ao PACS
+const result = await client.pacs.send({
+  connection_id: 'conn_abc123',
+  report_text: '<h1>LAUDO RADIOLOGICO</h1><p>Exame normal.</p>',
+  report_status: 'final',
+  accession_number: 'ACC2026012600001',
+  patient_id: 'PAT001',
+  patient_name: 'Silva, Joao Carlos',
+  modality: 'CT',
+  reporting_radiologist: 'Dr. Carlos Santos - CRM 11111',
+});
+
+if (result.success) {
+  console.log(`Enviado via ${result.protocol} em ${result.duration_ms}ms`);
 }
+```
 
-generateAndSend();
+---
+
+## Workflow Completo
+
+Exemplo: Criar laudo e enviar ao PACS.
+
+```typescript
+import { LaudosAI } from '@laudosai/sdk';
+
+const client = new LaudosAI({
+  apiKey: process.env.LAUDOSAI_API_KEY,
+  timeout: 120000,
+});
+
+// 1. Criar o laudo
+const { data: report } = await client.reports.create({
+  title: 'TC de Torax',
+  content: laudoHTML,
+  exam_type: 'CT',
+  accession_number: 'ACC2026012600001',
+  patient_id: 'PAT001',
+  patient_name: 'Silva, Joao Carlos',
+  status: 'final',
+});
+
+console.log(`Laudo criado: ${report.id}`);
+
+// 2. Enviar ao PACS
+const result = await client.pacs.send({
+  connection_id: 'conn_abc123',
+  report_text: laudoHTML,
+  report_status: 'final',
+  accession_number: 'ACC2026012600001',
+  patient_id: 'PAT001',
+  patient_name: 'Silva, Joao Carlos',
+  modality: 'CT',
+});
+
+if (result.success) {
+  console.log(`Enviado ao PACS via ${result.protocol}`);
+}
 ```
 
 ---
@@ -235,24 +211,18 @@ generateAndSend();
 ```typescript
 import { LaudosAI, LaudosAIError } from '@laudosai/sdk';
 
-const client = new LaudosAI({ apiKey: 'sk_live_xxx' });
-
 try {
   await client.reports.get('invalid-id');
 } catch (error) {
   if (error instanceof LaudosAIError) {
-    console.error(`Erro ${error.code}: ${error.message}`);
-    console.error(`Status HTTP: ${error.status}`);
+    console.error(`Status: ${error.status}`);
+    console.error(`Mensagem: ${error.message}`);
 
-    // Verificar tipo de erro
-    if (error.isAuthError()) {
-      console.error('Problema de autenticacao');
+    if (error.status === 401) {
+      console.error('Verifique sua API key');
     }
-    if (error.isRateLimitError()) {
-      console.error('Rate limit excedido');
-    }
-    if (error.isValidationError()) {
-      console.error('Erro de validacao:', error.details);
+    if (error.status === 429) {
+      console.error(`Rate limit. Retry apos ${error.retryAfter}s`);
     }
   }
 }
@@ -260,34 +230,15 @@ try {
 
 ---
 
-## TypeScript
-
-O SDK inclui tipos completos:
-
-```typescript
-import {
-  LaudosAI,
-  LaudosAIError,
-  Report,
-  Template,
-  AIGenerateInput,
-  AIGenerateResponse,
-  PACSSendInput,
-  PACSSendResponse,
-  PACSConnection,
-} from '@laudosai/sdk';
-```
-
----
-
 ## Requisitos
 
-- Node.js 18+ ou Bun 1.0+
-- API Key do Laudos.AI (obtenha em [copilot.laudos.ai/settings/developers](https://copilot.laudos.ai/settings/developers))
+- Node.js 18+ ou Bun 1.0+ ou Deno 1.28+
+- TypeScript 4.7+ (recomendado)
+- API Key do Laudos.AI
 
 ---
 
 ## Suporte
 
 - **GitHub**: [github.com/laudosai/sdk](https://github.com/laudosai/sdk)
-- **Email**: dev@laudos.ai
+- **Email**: [dev@laudos.ai](mailto:dev@laudos.ai)
