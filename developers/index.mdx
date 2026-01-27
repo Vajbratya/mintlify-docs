@@ -33,7 +33,7 @@ icon: 'code'
 
 ```mermaid
 flowchart LR
-    subgraph Laudos.AI
+    subgraph LaudosAI[Laudos.AI]
         Editor[Editor de Laudos]
         API[API Gateway]
         HL7[HL7 Builder]
@@ -46,17 +46,17 @@ flowchart LR
         VPN[VPN/Firewall]
     end
 
-    Editor -->|1. Finaliza laudo| API
-    API -->|2. Seleciona protocolo| HL7
-    API -->|2. Seleciona protocolo| DICOM
-    API -->|2. Seleciona protocolo| MV
+    Editor --> API
+    API --> HL7
+    API --> DICOM
+    API --> MV
 
-    HL7 -->|3. ORU^R01 via MLLP| VPN
-    DICOM -->|3. STOW-RS via HTTPS| VPN
-    MV -->|3. XML via HTTPS| VPN
+    HL7 --> VPN
+    DICOM --> VPN
+    MV --> VPN
 
-    VPN -->|4. Entrega| PACS
-    PACS -->|5. ACK/Response| API
+    VPN --> PACS
+    PACS --> API
 ```
 
 ---
