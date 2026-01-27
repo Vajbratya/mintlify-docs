@@ -1,18 +1,18 @@
 ---
-title: 'Integração PACS/RIS'
+title: 'Integracao PACS/RIS'
 description: 'Envie laudos do Laudos.AI direto para o editor do seu PACS'
 icon: 'server'
 ---
 
-# Integração com PACS/RIS
+# Integracao com PACS/RIS
 
-O Laudos.AI envia laudos estruturados diretamente para o editor do seu PACS. O radiologista só precisa revisar e assinar.
+O Laudos.AI envia laudos estruturados diretamente para o editor do seu PACS. O radiologista so precisa revisar e assinar.
 
 <Note>
-  **One-way push.** O Laudos.AI apenas ENVIA laudos. Nenhum dado de paciente é consultado ou armazenado.
+  **One-way push.** O Laudos.AI apenas ENVIA laudos. Nenhum dado de paciente e consultado ou armazenado.
 </Note>
 
-## Fluxo de Integração
+## Fluxo de Integracao
 
 ```mermaid
 sequenceDiagram
@@ -37,61 +37,95 @@ sequenceDiagram
     Rad->>PACS: Revisa e assina no PACS
 ```
 
-## Configuração por Sistema
+---
 
-### Carestream Vue (Brasil)
+## Sistemas Compativeis
 
-```bash
+### Protocolo HL7 ORU^R01 via MLLP
+
+| Sistema | Tipo | Observacao |
+|---------|------|-----------|
+| Carestream Vue | `carestream` | PACS mais comum no Brasil |
+| MV Soul / VIVACE | `mvsoul` | Suporte a CRM no campo do medico |
+| Philips Tasy | `tasy` | HIS/RIS brasileiro |
+| Pixeon | `pixeon` | PACS brasileiro |
+| MV 2000 | `mv2000` | Versao legada do MV |
+| Wareline | `wareline` | RIS brasileiro |
+
+### Protocolo DICOMweb STOW-RS
+
+| Sistema | Tipo | Observacao |
+|---------|------|-----------|
+| Orthanc | `dicomweb` | Open source, ideal para testes |
+| dcm4chee | `dicomweb` | Open source, enterprise |
+| Philips IntelliSpace | `dicomweb` | PACS internacional |
+| Siemens syngo.via | `dicomweb` | PACS internacional |
+| GE Centricity | `dicomweb` | PACS internacional |
+| Fujifilm Synapse | `dicomweb` | PACS internacional |
+| Agfa IMPAX | `dicomweb` | PACS internacional |
+
+### API XML Proprietaria
+
+| Sistema | Tipo | Observacao |
+|---------|------|-----------|
+| MV Soul | `mvsoul` | API XML/SOAP alternativa ao HL7 |
+
+---
+
+## Configuracao por Sistema
+
+### Carestream Vue
+
+```
 Host: IP do servidor Carestream
-Porta HL7: 2575
-AE Title: CARESTREAM (ou conforme configurado)
+Porta: 2575
 Protocolo: HL7 ORU^R01
 ```
 
-<Accordion title="Mensagem HL7 enviada">
+<Accordion title="Exemplo de mensagem HL7">
 ```
-MSH|^~\&|LAUDOSAI|LAUDOSAI|CARESTREAM|HOSPITAL|20240115103000||ORU^R01^ORU_R01|MSG001|P|2.5.1
-PID|1||PAT001||Silva^João||19800515|M
-OBR|1|ACC12345||RAD^TC Tórax^L|||||||||||||||||P|||||||Souza^Dr. Carlos
-OBX|1|TX|RAD^Radiology Report^L||TÉCNICA: TC de tórax sem contraste...||||||P
-OBX|2|TX|RAD^Radiology Report^L||ANÁLISE: Parênquima pulmonar de aspecto normal...||||||P
-OBX|3|TX|RAD^Radiology Report^L||CONCLUSÃO: Exame dentro dos limites da normalidade.||||||P
+MSH|^~\&|LAUDOSAI|LAUDOSAI|CARESTREAM|HOSPITAL|20260127103000||ORU^R01^ORU_R01|MSG001|P|2.5.1
+PID|1||PAT001||Silva^Joao||19800515|M
+OBR|1|ACC12345||RAD^TC Torax^L|||||||||||||||||P|||||||Souza^Dr. Carlos
+OBX|1|TX|RAD^Radiology Report^L||TECNICA: TC de torax sem contraste...||||||P
+OBX|2|TX|RAD^Radiology Report^L||ANALISE: Parenquima pulmonar de aspecto normal...||||||P
+OBX|3|TX|RAD^Radiology Report^L||CONCLUSAO: Exame dentro dos limites da normalidade.||||||P
 ```
 </Accordion>
 
-### MV Soul / VIVACE (Brasil)
+### MV Soul / VIVACE
 
-O MV Soul suporta dois protocolos de integração:
+Suporta dois protocolos:
 
 <Tabs>
   <Tab title="HL7 (Recomendado)">
-    ```bash
+    ```
     Host: IP do servidor MV
-    Porta HL7: 2575
-    AE Title: MVSOUL
+    Porta: 2575
     Protocolo: HL7 ORU^R01
     ```
 
-    <Accordion title="Mensagem HL7 com CRM">
+    O nome do medico inclui o CRM no formato: `Sobrenome^Nome^CRM^UF`
+
+    <Accordion title="Exemplo de mensagem HL7 com CRM">
     ```
-    MSH|^~\&|LAUDOSAI|LAUDOSAI|MVSOUL|MV|20240115103000||ORU^R01^ORU_R01|MSG001|P|2.5.1
-    PID|1||12345678900||Silva Filho^João||19800515|M
-    OBR|1|ACC12345||RAD^RM Crânio^L|||||||||||||||||P|||||||Souza^Carlos^123456^SP
-    OBX|1|TX|RAD^Radiology Report^L||TÉCNICA: RM de crânio...||||||P
+    MSH|^~\&|LAUDOSAI|LAUDOSAI|MVSOUL|MV|20260127103000||ORU^R01^ORU_R01|MSG001|P|2.5.1
+    PID|1||12345678900||Silva Filho^Joao||19800515|M
+    OBR|1|ACC12345||RAD^RM Cranio^L|||||||||||||||||P|||||||Souza^Carlos^123456^SP
+    OBX|1|TX|RAD^Radiology Report^L||TECNICA: RM de cranio...||||||P
     ```
-    Note que o nome do médico inclui o CRM: `Souza^Carlos^123456^SP`
     </Accordion>
   </Tab>
   <Tab title="XML API">
-    Se seu MV tiver a API XML habilitada:
+    Se o MV tiver a API XML habilitada:
 
-    ```bash
-    URL da API: https://mv.hospital.com.br/api/laudos
-    Autenticação: Basic ou API Key
+    ```
+    URL: https://mv.hospital.com.br/api/laudos
+    Autenticacao: Basic ou API Key
     Content-Type: application/xml
     ```
 
-    <Accordion title="XML enviado ao MV">
+    <Accordion title="Exemplo de XML enviado">
     ```xml
     <?xml version="1.0" encoding="UTF-8"?>
     <MV_LAUDO version="1.0">
@@ -106,7 +140,7 @@ O MV Soul suporta dois protocolos de integração:
       </EXAME>
       <LAUDO>
         <STATUS>P</STATUS>
-        <TEXTO><![CDATA[TÉCNICA: TC de tórax...]]></TEXTO>
+        <TEXTO><![CDATA[TECNICA: TC de torax...]]></TEXTO>
       </LAUDO>
       <MEDICO>
         <CRM>123456</CRM>
@@ -118,30 +152,32 @@ O MV Soul suporta dois protocolos de integração:
   </Tab>
 </Tabs>
 
-<Note>
-  **Suporte a CRM.** O Laudos.AI inclui automaticamente o CRM do médico na mensagem HL7/XML para validação no MV Soul.
-</Note>
-
 ### Tasy (Philips Brasil)
 
-```bash
+```
 Host: IP do servidor Tasy
-Porta HL7: 2575
-AE Title: TASY
+Porta: 2575
 Protocolo: HL7 ORU^R01
 ```
 
-### Orthanc (Open Source)
+### Pixeon
 
-```bash
-Host: IP do Orthanc
-Porta DICOMweb: 8042
-DICOMweb URL: /dicom-web
-AE Title: ORTHANC
-Protocolo: STOW-RS
+```
+Host: IP do servidor Pixeon
+Porta: 2575
+Protocolo: HL7 ORU^R01
 ```
 
-<Accordion title="DICOM SR JSON enviado">
+### DICOMweb (Orthanc, dcm4chee, Philips, Siemens, GE, Fujifilm, Agfa)
+
+```
+Host: IP ou hostname do servidor
+Porta: 8042 (HTTP) ou 443 (HTTPS)
+Protocolo: STOW-RS
+DICOMweb URL: /dicom-web (varia por fabricante)
+```
+
+<Accordion title="Exemplo de DICOM SR JSON">
 ```json
 {
   "00080016": {"vr": "UI", "Value": ["1.2.840.10008.5.1.4.1.1.88.11"]},
@@ -153,7 +189,7 @@ Protocolo: STOW-RS
     "vr": "SQ",
     "Value": [{
       "0040A040": {"vr": "CS", "Value": ["TEXT"]},
-      "0040A160": {"vr": "UT", "Value": ["TÉCNICA: TC de tórax..."]}
+      "0040A160": {"vr": "UT", "Value": ["TECNICA: TC de torax..."]}
     }]
   },
   "0040A491": {"vr": "CS", "Value": ["PARTIAL"]},
@@ -162,118 +198,69 @@ Protocolo: STOW-RS
 ```
 </Accordion>
 
-## API de Envio
-
-### Criar Conexão PACS
-
-```bash
-POST /api/v1/pacs/connections
-Authorization: Bearer sk_live_xxx
-Content-Type: application/json
-
-{
-  "name": "PACS Hospital Central",
-  "type": "carestream",
-  "host": "192.168.1.100",
-  "hl7_port": 2575,
-  "ae_title": "CARESTREAM",
-  "auth_type": "none"
-}
-```
-
-### Testar Conexão
-
-```bash
-POST /api/v1/pacs/connections/{id}/test
-
-# Resposta
-{
-  "success": true,
-  "message": "Conexão estabelecida",
-  "protocol": "hl7",
-  "latency_ms": 45
-}
-```
-
-### Enviar Laudo
-
-```bash
-POST /api/v1/pacs/connections/{id}/send
-Authorization: Bearer sk_live_xxx
-Content-Type: application/json
-
-{
-  "accession_number": "ACC12345",
-  "report_text": "TÉCNICA: TC de tórax sem contraste.\n\nANÁLISE: Parênquima pulmonar...\n\nCONCLUSÃO: Exame normal.",
-  "patient_id": "PAT001",
-  "patient_name": "João Silva",
-  "reporting_radiologist": "Dr. Carlos Souza"
-}
-```
-
-### Resposta de Sucesso
-
-```json
-{
-  "success": true,
-  "message": "Laudo enviado ao PACS",
-  "protocol": "hl7",
-  "ack_code": "AA"
-}
-```
+---
 
 ## Status do Laudo
 
-O laudo é sempre enviado como **PRELIMINAR** para que o radiologista revise e assine no PACS.
+O laudo e sempre enviado como **PRELIMINAR** para que o radiologista revise e assine no PACS.
 
-| Status DICOM | Código | Significado |
+| Status DICOM | Codigo | Significado |
 |--------------|--------|-------------|
-| Preliminar | P | Aguardando revisão |
-| Final | F | Assinado pelo médico |
-| Corrigido | C | Correção de laudo anterior |
+| Preliminar | P | Aguardando revisao |
+| Final | F | Assinado pelo medico |
+| Corrigido | C | Correcao de laudo anterior |
+
+---
 
 ## Requisitos de Rede
 
 <Warning>
-  Configure seu firewall para permitir conexões de saída do Laudos.AI.
+  Configure seu firewall para permitir conexoes de saida do Laudos.AI.
 </Warning>
 
-| Direção | Porta | Protocolo | Uso |
+| Direcao | Porta | Protocolo | Uso |
 |---------|-------|-----------|-----|
-| **Saída** | 2575 | TCP | HL7 MLLP |
-| **Saída** | 8042 | HTTPS | DICOMweb |
-| **Saída** | 443 | HTTPS | DICOMweb TLS |
-| **Saída** | 104 | DICOM | C-STORE (legado) |
+| Saida | 2575 | TCP | HL7 MLLP |
+| Saida | 8042 | HTTPS | DICOMweb |
+| Saida | 443 | HTTPS | DICOMweb TLS |
+
+---
 
 ## Tratamento de Erros
 
-| Código | Erro | Solução |
+| Codigo | Erro | Solucao |
 |--------|------|---------|
-| `CONNECTION_TIMEOUT` | Servidor não respondeu | Verificar firewall e porta |
-| `AUTH_FAILED` | Autenticação falhou | Verificar credenciais |
-| `HL7_NACK` | Mensagem rejeitada | Verificar formato do laudo |
+| `CONNECTION_TIMEOUT` | Servidor nao respondeu | Verificar firewall e porta |
+| `AUTH_FAILED` | Autenticacao falhou | Verificar credenciais |
+| `HL7_NACK` | Mensagem rejeitada pelo PACS | Verificar dados do paciente/exame |
 | `STOW_REJECTED` | PACS rejeitou SR | Verificar Study Instance UID |
+
+---
 
 ## FAQ
 
 <AccordionGroup>
-  <Accordion title="O laudo substitui o que está no PACS?">
-    Não. O laudo é enviado como PRELIMINAR e adiciona uma nova série ao estudo. O radiologista deve revisar e finalizar no PACS.
+  <Accordion title="O laudo substitui o que esta no PACS?">
+    Nao. O laudo e enviado como PRELIMINAR e adiciona uma nova serie ao estudo. O radiologista deve revisar e finalizar no PACS.
   </Accordion>
   <Accordion title="Preciso do Study Instance UID?">
-    Para HL7 (sistemas brasileiros), apenas o Número de Acesso é necessário. Para DICOMweb, o Study Instance UID é requerido.
+    Para HL7 (sistemas brasileiros), apenas o Numero de Acesso e necessario. Para DICOMweb, o Study Instance UID e requerido.
   </Accordion>
   <Accordion title="Funciona com VPN?">
-    Sim. Configure a VPN para permitir tráfego nas portas 2575 (HL7) ou 8042/443 (DICOMweb).
+    Sim. Configure a VPN para permitir trafego nas portas 2575 (HL7) ou 8042/443 (DICOMweb).
   </Accordion>
   <Accordion title="Suporta TLS/SSL?">
-    Sim. Marque "Usar TLS" na configuração para conexões criptografadas.
+    Sim. Marque "Usar TLS" na configuracao da conexao.
+  </Accordion>
+  <Accordion title="Quantos sistemas sao suportados?">
+    Atualmente suportamos 14 sistemas via 3 protocolos: HL7 MLLP (Carestream, MV Soul, Tasy, Pixeon, MV 2000, Wareline), DICOMweb STOW-RS (Orthanc, dcm4chee, Philips, Siemens, GE, Fujifilm, Agfa) e XML API (MV Soul).
   </Accordion>
 </AccordionGroup>
 
+---
+
 ## Precisa de ajuda?
 
-Entre em contato com nossa equipe de integrações:
+Entre em contato com nossa equipe de integracoes:
 
-- **Email:** [integracoes@laudos.ai](mailto:integracoes@laudos.ai)
-- **WhatsApp:** [Suporte Técnico](https://wa.me/5511999999999)
+- **Email**: [oi@laudos.ai](mailto:oi@laudos.ai)

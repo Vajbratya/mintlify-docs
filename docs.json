@@ -72,13 +72,6 @@
               "developers/integracao-pacs",
               "developers/webhooks"
             ]
-          },
-          {
-            "group": "SDKs",
-            "icon": "cube",
-            "pages": [
-              "developers/sdk"
-            ]
           }
         ]
       }
